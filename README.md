@@ -14,3 +14,11 @@ Utilisation du karma commit pour plus de compréhension sur la forge : [Karma] (
 ## Lancement du projet ##
 ``gcc -o shell shell.c``
 ``./shell``
+
+## Commande PS -AUX ##
+- ./proc/[pid] : Nom Dossier = Numero du processus
+- ./proc/[pid]/cmdline : commande d'execution -> colonne "Commande"
+- ./proc/[pid]/stat : 
+	- pid : %d (1)
+	- state : %c (3)
+	- starttime : %llu (22)
