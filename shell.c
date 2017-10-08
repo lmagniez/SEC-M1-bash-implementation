@@ -11,9 +11,26 @@
 
 #define PROC "/proc/"
 #define CMDLINE "/cmdline"
+#define COMM "/comm"
 #define STAT "/stat"
 
 #define STATE_POSITION 2
+#define READ_CMD_LINE 15
+
+char * concat_charactere(char * str , char c){
+
+    int len = str == NULL ? 0 : strlen(str);
+
+    str = str == NULL ? malloc(sizeof(char)) : str;
+
+    char * newChaine = malloc(sizeof(char)*(len+1));
+
+    strcpy(newChaine,str);
+    newChaine[len] = c;
+
+    return newChaine;
+}
+
 
 int openFile(char * chemin){
     int idfichier=open(chemin,O_RDONLY);
@@ -34,18 +51,56 @@ char * recupPath(char * processus){
     return path;
 }
 
+char * recup_comm(char * path){
+    char * comm = malloc(sizeof(char));
+    char c;
+
+    int idfichier = openFile(strcat(path,COMM));
+
+    comm = concat_charactere(comm,'[');
+
+    while (read(idfichier,&c,sizeof(char)) != 0){ 
+        if(c != '\n')
+            comm = concat_charactere(comm,c);
+    }
+
+    comm = concat_charactere(comm,']');
+
+    return comm;
+}
+
+
 void afficher_cmdLine(char * path){
     printf("--Cmdline : ");
-
-    char * chemin = strcat(path,CMDLINE);
+    int nb_char = 0;
+    char * cmdline = NULL;
     char c;
-    int idfichier = openFile(chemin);
+    char * path_cmdline = malloc(sizeof(char)*strlen(path)+1);
+
+    strcpy(path_cmdline,path);
+
+
+    int idfichier = openFile(strcat(path_cmdline,CMDLINE));
     while (read(idfichier,&c,sizeof(char)) != 0){ 
-        printf("%c", c);
+        if(nb_char < READ_CMD_LINE){
+            cmdline = concat_charactere(cmdline,c);
+        }
+        else
+            break;
+        nb_char++;
     }
-    printf("\n");
+
+
+    if(!cmdline){
+        cmdline = recup_comm(path);
+    }
+  
+    printf("%s \n",cmdline);
     close(idfichier);
 }
+
+
+
 
 void afficher_state(char * path){
     printf("--State : ");
