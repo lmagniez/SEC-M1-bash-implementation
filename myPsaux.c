@@ -26,12 +26,14 @@ char * concat_charactere(char * str , char c){
 
     int len = str == NULL ? 0 : strlen(str);
 
-    str = str == NULL ? malloc(sizeof(char)) : str;
+    str = str == NULL ? malloc(sizeof(char)*2) : str;
 
     char * newChaine = malloc(sizeof(char)*(len+1));
 
     strcpy(newChaine,str);
+
     newChaine[len] = c;
+    newChaine[len+1] = '\0';
 
     return newChaine;
 }
@@ -45,6 +47,11 @@ FILE * myFopen(char * file){
     }
 
     return fp;
+}
+
+
+void myFclose(FILE * fp){
+    int retour = fclose(fp);
 }
 
 int openFile(char * chemin){
@@ -75,7 +82,7 @@ char * copy_path(char * path){
 }
 
 char * recup_comm(char * path){
-    char * comm = malloc(sizeof(char));
+    char * comm = NULL;
     char c;
 
     int idfichier = openFile(strcat(path,COMM));
@@ -93,7 +100,7 @@ char * recup_comm(char * path){
 }
 
 void afficher_cmdLine(char * path){
- printf("--Cmdline : ");
+    printf("--Cmdline : ");
     int nb_char = 0;
     char * cmdline = NULL;
     char c;
@@ -101,6 +108,7 @@ void afficher_cmdLine(char * path){
     char * path_cmdline = copy_path(path);
 
     int idfichier = openFile(strcat(path_cmdline,CMDLINE));
+    
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(nb_char < READ_CMD_LINE){
             cmdline = concat_charactere(cmdline,c);
@@ -109,7 +117,6 @@ void afficher_cmdLine(char * path){
             break;
         nb_char++;
     }
-
 
     if(!cmdline){
         cmdline = recup_comm(path);
@@ -159,6 +166,7 @@ int recup_uid(char * path){
          parcour_ligne++;
     }
 
+    myFclose(fp);
     return atoi(uid);
 }
 
@@ -187,11 +195,10 @@ void detailsProcessus(char * processusPID){
 
 void readProc(){
     struct dirent *lecture;
-    DIR *rep;
-    char *ptr;
-    rep = opendir(PROC);
+    DIR *rep = opendir(PROC);
+    char * ptr;
     while ((lecture = readdir(rep))) {
-        if(lecture->d_type == 4 && strtol(lecture->d_name, &ptr, 10)!=0){
+        if(lecture->d_type == DT_DIR && strtol(lecture->d_name, &ptr, 10)!=0){
             printf("Numero processus : %s\n", lecture->d_name);
             detailsProcessus(lecture->d_name);
         }
