@@ -1,8 +1,6 @@
-#include "stack.h"
-#include "launchManager.h"
-#include "operator.h"
-
 newstack(char*, stack);
+newstack(char*, cmdStack);
+newstack(char*, operatorStack);
 
 void addToStack(char *value) {
 	char* valAdd = malloc(sizeof(value) + 1);
@@ -18,66 +16,58 @@ void displayStack(void) {
 	}
 }
 
-static void initializeCommandStruct(CommandStruct* cmdStruct) {
-	cmdStruct->cmd1 = NULL;
-	cmdStruct->cmd2 = NULL;
-	cmdStruct->operator = NULL;
-	cmdStruct->transitionOperator = NULL;
-	cmdStruct->nextCmd = NULL;
-}
+void endInitStack(void) {
+	while (!empty(stack)) {
+		char *val1, *val2;
 
-CommandStruct* createListCommand(void) {
-	//displayStack();
-	CommandStruct* commandStruct = malloc(sizeof(CommandStruct));
-	initializeCommandStruct(commandStruct);
-	CommandStruct* head = commandStruct;
-	CommandStruct* currPos = commandStruct;
+		val1 = pop(stack);
 
-	int operatorTest = 0;
-	while(!empty(stack)) {
-		char *value = pop(stack);
-
-		if (isOperator(value) && !operatorTest) {
-			operatorTest = 1;
-			if (currPos->operator == NULL) {
-				currPos->operator = value;
-			} else {
-				commandStruct = malloc(sizeof(CommandStruct));
-				initializeCommandStruct(commandStruct);
-				commandStruct->operator = value;
-				head->nextCmd = commandStruct;
+		if (isOperator(val1)) {
+			if (!empty(stack)) {
+				val2 = pop(stack);
+				if (isOperator(val2)) {
+					push(operatorStack, val2);
+				} else {
+					push(cmdStack, val2);
+				}
 			}
-		} else if(operatorTest && isOperator(value)) { //creation de la transition transition
-			CommandStruct* transition = malloc(sizeof(CommandStruct));
-			initializeCommandStruct(transition);
-			transition->transitionOperator = value;
-			transition->nextCmd = head->nextCmd;
-			head->nextCmd = transition;
-		} else { //cas normal
-			operatorTest = 0;
-			if (currPos->cmd2 == NULL) {
-				currPos->cmd2 = value;
-			} else if (currPos->cmd1 == NULL) {
-				currPos->cmd1 = value;
-			} else if (head->cmd2 == NULL) {
-				head->cmd2 = value;
-			} else if (head->cmd1 == NULL) {
-				head->cmd1 = value;
-			}//voir si il ne manque pas un cas
+
+			push(operatorStack, val1);
+		} else {
+			push(cmdStack, val1);
 		}
 	}
 
-	return head;
 }
 
-void displayListCommand(CommandStruct *cmd) {
-	for(;cmd != NULL; cmd = cmd->nextCmd) {
-		if (cmd->transitionOperator == NULL) {
-			printf("Cmd 1 : %s op : %s Cmd2 : %s ", cmd->cmd1, cmd->operator, cmd->cmd2);
+void launchCommands(void) {
+	while(!empty(cmdStack)) {
+		char *operator = pop(operatorStack);
+		char *cmd = pop(cmdStack);
+
+		pid_t pid = fork();
+
+		if (pid == 0) {
+
+		} else if (pid > 0) {
+			int status;
+			wait(&status);
 		} else {
-			printf("Transition : %s ", cmd->transitionOperator);
+
 		}
 	}
+}
 
-	printf("\n");
+void displayListCommand(void) {
+	printf("Affichage stack opérateur\n");
+
+	while(!empty(operatorStack)) {
+		printf("%s \n", pop(operatorStack));
+	}
+
+	printf("Affichage stack cmd\n");
+
+	while(!empty(cmdStack)) {
+		printf("%s\n", pop(cmdStack));
+	}
 }

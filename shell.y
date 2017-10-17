@@ -25,7 +25,7 @@ Input:
 
 Line:
 	END
-	|Command END { displayListCommand(createListCommand()), printf("\n> ");}
+	|Command END { /*displayListCommand(*/endInitStack()/*)*/, printf("\n> ");}
 	;
 
 Command:
