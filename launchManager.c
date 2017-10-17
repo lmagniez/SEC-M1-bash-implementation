@@ -1,3 +1,4 @@
+#include "launchManager.h"
 newstack(char*, stack);
 newstack(char*, cmdStack);
 newstack(char*, operatorStack);
@@ -38,6 +39,7 @@ void endInitStack(void) {
 		}
 	}
 
+	displayListCommand();
 }
 
 void launchCommands(void) {
