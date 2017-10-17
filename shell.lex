@@ -5,6 +5,10 @@
 %}
 
 %%
+[ ]*"exit"[ ]* {
+	return EXIT;
+}
+
 ([a-z]*[\ -]*)* {
 	yylval=yytext;
 	return (CMD);
@@ -28,4 +32,5 @@
 "\n" {
 	return(END);
 }
+
 %%

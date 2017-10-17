@@ -1,13 +1,17 @@
 %{
 #include "global.h"
+#include "launchManager.h"
+#include "operator.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 int yylex();
 int yyerror(char*);
+
 %}
 
-%token CMD
-%token OR PIPE AND BACKGROUND SEPARATOR
-%token END
+%token CMD AND PIPE OR BACKGROUND SEPARATOR EXIT END
 
 %left AND OR
 %left PIPE SEPARATOR BACKGROUND
@@ -21,16 +25,17 @@ Input:
 
 Line:
 	END
-	|Command END {}
+	|Command END { displayListCommand(createListCommand()), printf("\n> ");}
 	;
 
 Command:
-	CMD {printf("%s ", $1);}
-	|Command AND Command {printf("AND");}
-	|Command OR Command {printf("OR");}
-	|Command PIPE Command {printf("PIPE");}
-	|Command SEPARATOR Command {printf("SEPARATOR");}
-	|Command BACKGROUND {printf("BACKGROUND");}
+	CMD {addToStack($1);}
+	|Command AND Command {addToStack(OP_AND);}
+	|Command OR Command {addToStack(OP_OR);}
+	|Command PIPE Command {addToStack(OP_PIPE);}
+	|Command SEPARATOR Command {addToStack(OP_SEPARATOR);}
+	|Command BACKGROUND {addToStack(OP_BACKGROUND);}
+	|EXIT {addToStack(OP_EXIT);}
 	;
 %%
 
@@ -40,5 +45,6 @@ int yyerror(char *s) {
 }
 
 int main(void) {
+	printf("> ");
 	yyparse();
 }
