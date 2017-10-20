@@ -6,12 +6,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <grp.h>
+#include <time.h>
 
 #define syserror(x) perror(errormsg[x]), exit(x)
 #define ROUGE(m) "\033[01;31m"m"\033[0m"
 #define VERT(m) "\033[01;32m"m"\033[0m"
 
 #define MAX_PATH 10
+#define MAX_FILE 10
 #define RIGHT_LEN 10
 
 
@@ -20,7 +23,6 @@ char *errormsg[]={
 	ROUGE("Invalid options"),//1
 	ROUGE("Problem with opendir"),//2
 	ROUGE("Problem with stat"),//3
-	
 	
 };
 
@@ -63,10 +65,129 @@ char *replace_tilde(char *path){
 		res = malloc(sizeof(char)*size_path);
 		strcpy(res,homedir);//delete the ~
 		strcat(res,path+1);
-		printf("PATH FULL: %s \n", res);
+		//printf("PATH FULL: %s \n", res);
 	}
 	return res;
 }
+
+
+void setrights(char *rights,  struct stat *buf_stat){
+	mode_t st_mode;			
+	st_mode = buf_stat->st_mode;
+		
+		
+			if(S_IRUSR&st_mode);
+				rights[1]='r';
+			if(S_IWUSR&st_mode)
+				rights[2]='w';
+			if(S_IXUSR&st_mode)
+				rights[3]='x';
+			if(S_IRGRP&st_mode)
+				rights[4]='r';
+			if(S_IWGRP&st_mode)
+				rights[5]='w';
+			if(S_IXGRP&st_mode)
+				rights[6]='x';
+			if(S_IROTH&st_mode)
+				rights[7]='r';
+			if(S_IWOTH&st_mode)
+				rights[8]='w';
+			if(S_IXOTH&st_mode)
+				rights[9]='x';
+		
+			//int file_type;
+			if(S_ISREG(st_mode)){
+				rights[0]='f';
+			}
+			else if(S_ISDIR(st_mode)){
+				rights[0]='d';
+			}
+			else if(S_ISBLK(st_mode)){
+				rights[0]='b';
+			}
+			else if(S_ISLNK(st_mode)){
+				rights[0]='l';
+			}
+			else if(S_ISFIFO(st_mode)){
+				rights[0]='p';
+			}
+			else if(S_ISSOCK(st_mode)){
+				rights[0]='s';
+			}
+			else if(S_ISCHR(st_mode)){
+				rights[0]='c';
+			}
+}
+
+void get_date_modif(char *date, struct stat *buf_stat){
+	char date_modif[64];
+	char date_modif_tmp[64];
+
+			struct timespec time = buf_stat->st_mtim ;
+			time_t nowtime;
+			struct tm *nowtm;
+
+			nowtime = time.tv_sec;
+			nowtm = localtime(&nowtime);
+			char month_s[4];
+			int month_int;
+			char *month;
+
+			strftime(month_s, sizeof month_s, "%m",nowtm);
+			month_int=atoi(month_s);
+
+			switch(month_int){
+				case 1:
+					month="jan.";
+					break;				
+				case 2:
+					month="feb.";
+					break;				
+				case 3:
+					month="mar.";
+					break;				
+				case 4:
+					month="apr.";
+					break;				
+				case 5:
+					month="may.";
+					break;				
+				case 6:
+					month="jun.";
+					break;				
+				case 7:
+					month="jul.";
+					break;				
+				case 8:
+					month="aug.";
+					break;				
+				case 9:
+					month="sep.";
+					break;				
+				case 10:
+					month="oct.";
+					break;
+				case 11:
+					month="nov.";
+					break;				
+				case 12:
+					month="dec.";
+					break;				
+				default:
+					month="err.";			
+			}
+
+			strftime(date_modif_tmp, sizeof date_modif_tmp, " %d %H:%M", nowtm);
+			snprintf(date_modif, sizeof date_modif, "%s", date_modif_tmp);
+			
+			strcpy(date, month);
+			strcat(date, date_modif);
+
+
+
+}
+
+
 
 
 /*
@@ -76,6 +197,12 @@ void list_file(char *path){
 	
 	char * path_tmp;
 	char * path_tmp_full;
+
+
+	int nb_file = 0;
+	char ** file_list = malloc(sizeof(char*)*MAX_FILE);
+	
+
 	
 	DIR* directory;
 	struct dirent* readen_file;
@@ -104,104 +231,60 @@ void list_file(char *path){
 		int nb_hard_link;		
 		int file_size;
 		
-		char* modif_month;
-		int modif_day;
-		char* modif_time;
+		char date_mod[64];
 		
 		//in process
-		mode_t st_mode;
+		
 		struct stat *buf_stat;
 		
 		int fullpath_size;
 		
-		
-		//Get the full path
 		filename = readen_file->d_name;
-		fullpath_size = strlen(path_tmp_full) + strlen(filename);
+		if(filename[0] != '.'){		
+			
+			//Get the full path
+			fullpath_size = strlen(path_tmp_full) + strlen(filename);
 		
-		fullpath = malloc(sizeof(char)*(fullpath_size+1));
-		strcpy(fullpath,path_tmp_full);
-		strcat(fullpath,filename);
+			fullpath = malloc(sizeof(char)*(fullpath_size+1));
+			strcpy(fullpath,path_tmp_full);
+			strcat(fullpath,filename);
 		
+			buf_stat = malloc(sizeof(struct stat));
 		
-		printf("fullpath -> %s\n", fullpath);
+			if(stat(fullpath, buf_stat)==-1){
+				syserror(3);
+			}
+
+			//rights
+			setrights(rights, buf_stat);
+
+			// number of hard links 
+			nb_hard_link = buf_stat->st_nlink;       
+
+			//uid
+			uid = buf_stat->st_uid;         
+			struct passwd *pw = getpwuid(uid);
+	  		if (pw)
+		 		username = pw->pw_name;
+
+			//gid
+			gid = buf_stat->st_gid;
+			struct group *gr = getgrgid(gid);
+			if(gr)
+				groupname = gr->gr_name;
+
+			//file size
+			file_size = buf_stat -> st_size;
+			
+			//date modif
+			get_date_modif(date_mod, buf_stat);
+			
+			//printf("readen file: %s \n", readen_file->d_name); 
+			printf("%s %d %s %s %d\t%s %s\n",rights, nb_hard_link, username, groupname, file_size, date_mod, filename);
 		
-		buf_stat = malloc(sizeof(struct stat));
-		
-		if(stat(fullpath, buf_stat)==-1){
-			syserror(3);
+			free(fullpath);
+			free(buf_stat);
 		}
-		
-		st_mode = buf_stat->st_mode;
-		
-		
-		if(S_IRUSR&st_mode);
-			rights[1]='r';
-		if(S_IWUSR&st_mode)
-			rights[2]='w';
-		if(S_IXUSR&st_mode)
-			rights[3]='x';
-		if(S_IRGRP&st_mode)
-			rights[4]='r';
-		if(S_IWGRP&st_mode)
-			rights[5]='w';
-		if(S_IXGRP&st_mode)
-			rights[6]='x';
-		if(S_IROTH&st_mode)
-			rights[7]='r';
-		if(S_IWOTH&st_mode)
-			rights[8]='w';
-		if(S_IXOTH&st_mode)
-			rights[9]='x';
-		
-		//int file_type;
-		if(S_ISREG(st_mode)){
-			rights[0]='f';
-		}
-		else if(S_ISDIR(st_mode)){
-			rights[0]='d';
-		}
-		else if(S_ISBLK(st_mode)){
-			rights[0]='b';
-		}
-		else if(S_ISLNK(st_mode)){
-			rights[0]='l';
-		}
-		else if(S_ISFIFO(st_mode)){
-			rights[0]='p';
-		}
-		else if(S_ISSOCK(st_mode)){
-			rights[0]='s';
-		}
-		else if(S_ISCHR(st_mode)){
-			rights[0]='c';
-		}
-		
-		/*
-		int uid;//
-		char *username;
-		int gid;//
-		char *groupname;
-		
-		int nb_hard_link;		
-		int file_size;
-		
-		char* modif_month;
-		int modif_day;
-		char* modif_time;
-		*/
-		
-		printf("readen file: %s \n", readen_file->d_name); 
-		printf("rights: %s\n",rights);
-		
-		
-		
-		free(fullpath);
-		free(buf_stat);
-		
-		//stat -t compil.sh 
-		//NAME TAILLE BLOCS _ UID GID _ _ NBLIEN _ _ _ _ _ _ _ BLOCE/S
-		
 		
 		
 	}
@@ -301,6 +384,7 @@ int main(int argc, char *argv[]){
 	}*/
 	
 	//list_file("/home/loick/Bureau/Nouveau dossier");
-	list_file("~/Bureau");
+	//list_file("~/Bureau");
+	list_file("~/GIT/bash-sec");
 	free(tab_path);
 }
