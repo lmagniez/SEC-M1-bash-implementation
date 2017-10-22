@@ -19,6 +19,7 @@
 
 #define MAX_PATH 10
 #define MAX_FILE 10
+#define MAX_DIR 10
 #define RIGHT_LEN 10
 #define MAX_FILENAME 100
 
@@ -68,10 +69,16 @@ char *replace_tilde(char *path){
 	
 	if(path[0]=='~'){
 		int size_path=strlen(path)+strlen(homedir)-1;
-		res = malloc(sizeof(char)*size_path);
+		res = calloc(sizeof(char)*size_path, size_path);
 		strcpy(res,homedir);//delete the ~
 		strcat(res,path+1);
 		//printf("PATH FULL: %s \n", res);
+	}
+	else{
+		int size_path=strlen(path)+1;
+		res = calloc(sizeof(char)*size_path, size_path);
+		strcpy(res,path);
+		return res;	
 	}
 	return res;
 }
@@ -274,14 +281,14 @@ void sort_list(char **file_list, int nb_file){
 /*
  * Get the total number of blocks used for a file list
  */
-int get_total_blocks(char *path_tmp_full, char **file_list, int nb_file){
+int get_total_blocks(char *path_tmp_full, char **file_list, int nb_file, int opt_a){
 	int total_block = 0;	
 	char * fullpath, *filename;
 	for(int i=0; i<nb_file; i++){
 		struct stat *buf_stat;			
 		int fullpath_size;	
 		filename = file_list[i];
-		if(filename[0] != '.'){		
+		if(opt_a||filename[0] != '.'){		
 			
 			//Get the full path
 			fullpath_size = strlen(path_tmp_full) + strlen(filename);
@@ -296,43 +303,43 @@ int get_total_blocks(char *path_tmp_full, char **file_list, int nb_file){
 				syserror(3);
 			}
 			total_block += (buf_stat->st_blocks)/2; 
+			free(fullpath);
+			free(buf_stat);		
 		}
 
 	}
 	return total_block;
 }
 
+
 /*
  * ls -l to a path
  */
-void list_file(char *path){
+void list_file(char *path, int opt_a, int opt_R){
 	
 	char * path_tmp;
 	char * path_tmp_full;
-	char *filename;//
+	char *filename;
 	char *fullpath;	
 	int total_block = 0;
+	//file list
 	int max_file = MAX_FILE;
-
 	int nb_file = 0;
-	char ** file_list = malloc(sizeof(char*)*MAX_FILE);
-	
+	char ** file_list = malloc(sizeof(char*)*max_file);
+	//dir list	
+	int max_dir = MAX_DIR;
+	int nb_dir = 0;	
+	char ** dir_list = malloc(sizeof(char*)*max_dir);
 	
 	DIR* directory;
 	struct dirent* readen_file;
-	printf("ls -l %s \n",path);
 	
-	
+	//change the path into the correct format
 	path_tmp = add_slash_to_path(path);
 	path_tmp_full = replace_tilde(path_tmp);
 	
-	//nb_file = get_file_list(path_tmp_full, file_list);
-
-	
 	directory = opendir(path_tmp_full);
 	if(!directory)syserror(2);
-		
-	
 	while(readen_file=readdir(directory)){
 		
 		if(nb_file==max_file){
@@ -347,45 +354,39 @@ void list_file(char *path){
 
 	}
 	closedir(directory);
-	
-	
 
 	sort_list(file_list, nb_file);
-	total_block = get_total_blocks(path_tmp_full, file_list, nb_file);
+	total_block = get_total_blocks(path_tmp_full, file_list, nb_file, opt_a);
 
+	printf("\n%s: \n",path);
 	printf("total %d\n",total_block);
 
 	for(int i=0; i<nb_file; i++){
-
+	
 		//to display
-		char *filename;//
-		char *fullpath;//
-		//char * path_tmp;
+		char *filename;
 		int file_type;
-		int uid;//
+		int uid;
 		char *username;
-		int gid;//
+		int gid;
 		char *groupname;
 		char rights[]="----------";
-		
 		int nb_hard_link;		
 		int file_size;
-		
 		char date_mod[64];
 		
-		int is_exec = 0;
-		int is_folder = 0;
-		int is_link = 0;	
 		char * link_dest = malloc(sizeof(char)*MAX_FILENAME);
 
 		//in process
-		
 		struct stat *buf_stat;
-		
 		int fullpath_size;
-		
+		int is_exec = 0;
+		int is_folder = 0;
+		int is_link = 0;			
+
+
 		filename = file_list[i];
-		if(filename[0]!='.'){		
+		if(opt_a||filename[0]!='.'){		
 			
 			//Get the full path
 			fullpath_size = strlen(path_tmp_full) + strlen(filename);
@@ -436,11 +437,24 @@ void list_file(char *path){
 			//date modif
 			get_date_modif(date_mod, buf_stat);
 			
-			//printf("readen file: %s \n", readen_file->d_name); 
 			if(is_folder){
 				printf("%s %d %s %s %d\t%s ",
 					rights, nb_hard_link, username, groupname, file_size, date_mod);
-				printf(BLUE("%s\n"),filename);			
+				printf(BLUE("%s\n"),filename);
+				
+				//loop if we add .. or . to the files
+				if(strcmp(filename,"..")!=0&&strcmp(filename,".")!=0){				
+					if(nb_dir==max_dir-1){
+						max_dir=max_dir*2;
+						char **dir_list_tmp = malloc(sizeof(char*)*max_dir);
+						memcpy(dir_list_tmp, dir_list, sizeof(char*)*(max_dir/2));
+						free(dir_list);
+						dir_list=dir_list_tmp;	
+					}
+					dir_list[nb_dir] = malloc(sizeof(char)*MAX_FILENAME);				
+					strcpy(dir_list[nb_dir++],fullpath);	
+				}
+						
 			}
 			else if(is_link){
 				printf("%s %d %s %s %d\t%s ",
@@ -461,20 +475,30 @@ void list_file(char *path){
 			free(fullpath);
 			free(buf_stat);
 		}
-		
+		free(link_dest);
 		
 	}
 	
 	
+		
 	
 	for(int i=0; i<nb_file; i++){
 		free(file_list[i]);
 	}
-	free(file_list);
+	free(file_list);	
 
 	free(path_tmp);
 	free(path_tmp_full);
 	
+	if(opt_R){
+		for(int i=0; i<nb_dir; i++){
+			list_file(dir_list[i], opt_a, opt_R);		
+		}
+	}
+	for(int i=0; i<nb_dir; i++){
+		free(dir_list[i]);
+	}
+	free(dir_list);	
 }
 
 /*
@@ -555,18 +579,19 @@ int main(int argc, char *argv[]){
 		}
 		
 	}
-	/*
+	
 	printf("options %d %d ",opt_a, opt_R);
 	printf("nb path %d \n",nb_path);
 	
 	printf("Liste path: \n");
 	
 	for(int i=0; i<nb_path; i++){
-		printf(">> %s\n", path[i]);
-	}*/
+		//printf(">> %s\n", tab_path[i]);
+		list_file(tab_path[i],opt_a,opt_R);
+	}
 	
-	//list_file("/home/loick/Bureau/Nouveau dossier");
-	list_file("~/Bureau");
+	//list_file("/home/loick/Bureau/Nouveau dossier",1,1);
+	//list_file("~/Bureau");
 	//list_file("~/GIT/bash-sec");
 	free(tab_path);
 }
