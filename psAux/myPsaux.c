@@ -12,6 +12,7 @@
 
 #include <pwd.h>
 
+#define DEV_PTS "/dev/pts"
 #define PROC "/proc/"
 #define CMDLINE "/cmdline"
 #define COMM "/comm"
@@ -217,14 +218,26 @@ char * getTTY(char * path){
 }
 
 
+char * nametyy(int tty){
+	struct dirent *lecture;
+	DIR *rep = opendir(DEV_PTS);
+	char * ptr;
+	struct stat * fileStat = malloc(sizeof(struct stat));
+
+    printf("-------\n");
+    return "";
+}
+
+
 void afficher_tty(char * path){
      printf("--TTY : ");
 
      char * tty = getTTY(path);
+     int tty_id = atoi(tty);
 
      printf("%s ", tty);
 
-     char * name = "";
+     char * name = tty_id == 0 ? "?" : nametyy(tty_id);
 
      printf("----- %-8.8s \n",name );
 }
