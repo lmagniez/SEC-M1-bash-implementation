@@ -92,7 +92,7 @@ void setrights(char *rights,  struct stat *buf_stat){
 	st_mode = buf_stat->st_mode;
 		
 		
-			if(S_IRUSR&st_mode);
+			if(S_IRUSR&st_mode)
 				rights[1]='r';
 			if(S_IWUSR&st_mode)
 				rights[2]='w';
@@ -319,7 +319,7 @@ void list_file(char *path, int opt_a, int opt_R){
 	
 	char * path_tmp;
 	char * path_tmp_full;
-	char *filename;
+	//char *filename;
 	char *fullpath;	
 	int total_block = 0;
 	//file list
@@ -340,7 +340,7 @@ void list_file(char *path, int opt_a, int opt_R){
 	
 	directory = opendir(path_tmp_full);
 	if(!directory)syserror(2);
-	while(readen_file=readdir(directory)){
+	while((readen_file=readdir(directory))){
 		
 		if(nb_file==max_file){
 			max_file=max_file*2;
@@ -365,7 +365,7 @@ void list_file(char *path, int opt_a, int opt_R){
 	
 		//to display
 		char *filename;
-		int file_type;
+		//int file_type;
 		int uid;
 		char *username;
 		int gid;
@@ -595,3 +595,4 @@ int main(int argc, char *argv[]){
 	//list_file("~/GIT/bash-sec");
 	free(tab_path);
 }
+
