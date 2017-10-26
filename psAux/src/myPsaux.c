@@ -64,15 +64,12 @@ void afficher_state(char * path){
 }
 
 int recup_uid(char * path){
-
-    FILE * fp = myFopen(strcat(path,STATUS));
-
     int nb_ligne = 0;
     int parcour_ligne = 0;
-    char * string_to_read = malloc(sizeof(char)*256);
     char * uid = NULL;
     int nb_mot = 0;
-
+    FILE * fp = myFopen(strcat(path,STATUS));
+    char * string_to_read = malloc(sizeof(char)*256);
 
     while(fgets(string_to_read, 256, fp) && nb_ligne < 9){
         nb_ligne++;
@@ -121,17 +118,78 @@ char * getTTY(char * path){
     return tty;
 }
 
+char * read_dev_pts(char * tty){
+    char * path = malloc(sizeof(char)*strlen(DEV_PTS));
+
+    struct dirent *lecture;
+    struct stat * buf_stat =  malloc(sizeof(struct stat));
+
+    DIR *rep = opendir(DEV_PTS);
+
+    while ((lecture = readdir(rep))) {
+        if(lecture->d_type == DT_CHR){
+            strcpy(path,DEV_PTS);
+            path = strcat(path,lecture->d_name);
+            if(stat(path, buf_stat)==-1){
+                perror("stats");
+                free(buf_stat);
+                free(path);
+            }
+            if((int)buf_stat->st_rdev == atoi(tty)){
+                free(buf_stat);
+                return path;
+            }
+        }  
+    }
+    closedir(rep);
+
+    free(buf_stat);
+    free(path);
+    return "";
+}
+
+char * read_dev(char * tty){
+    char * path = malloc(sizeof(char)*strlen(DEV));
+
+    struct dirent *lecture;
+    struct stat * buf_stat =  malloc(sizeof(struct stat));
+
+    DIR *rep = opendir(DEV);
+
+    while ((lecture = readdir(rep))) {
+        if(lecture->d_type == DT_CHR && strstr(lecture->d_name,"tty")){
+            strcpy(path,DEV); 
+            path = strcat(path,lecture->d_name); 
+
+            if(stat(path, buf_stat)==-1){
+                perror("stats");
+                free(buf_stat);
+                free(path);
+            }
+            if((int)buf_stat->st_rdev == atoi(tty)){
+                free(buf_stat);
+                return path;
+            }
+        }
+    }
+    closedir(rep);
+    return "";
+}
+
+char * getNameTty(char * tty){ //mettre dans h
+    char * name = read_dev_pts(tty);
+    return !strcmp(name,"") == 0 ? name : read_dev(tty);
+} 
+
 
 void afficher_tty(char * path){
      printf("--TTY : ");
 
      char * tty = getTTY(path);
 
-     printf("%s ", tty);
+     char * name = atoi(tty) == 0 ? "?" : getNameTty(tty)+5;
 
-     char * name = "";
-
-     printf("----- %-8.8s \n",name );
+     printf("%s \n",name);
 }
 
 
@@ -143,7 +201,6 @@ void afficher_start_time(char * path){
     int idfichier = openFile(strcat(path,STAT));
 
     read_file_nbMot(idfichier,START_TIME_POSITION);
-
 
     read(idfichier,&start_time,sizeof(long unsigned int ));
 

@@ -10,16 +10,6 @@
 #include <string.h>
 
 #define PROC "/proc/"
-#define CMDLINE "/cmdline"
-#define COMM "/comm"
-#define STAT "/stat"
-#define STATUS "/status"
-
-#define NAME_POSITION 1
-#define STATE_POSITION 2
-#define TTY_POSITION 6
-#define START_TIME_POSITION 5
-#define READ_CMD_LINE 15
 
 char * concat_charactere(char * str , char c);
 
