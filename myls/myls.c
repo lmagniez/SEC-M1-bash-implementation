@@ -65,7 +65,6 @@ char *replace_tilde(char *path){
 	
 	struct passwd *pw = getpwuid(getuid());
 	const char *homedir = pw->pw_dir;
-	printf("homedir %s \n", homedir);
 	
 	if(path[0]=='~'){
 		int size_path=strlen(path)+strlen(homedir)-1;
@@ -217,40 +216,6 @@ char * tolowerS(char *s){
 }
 
 /*
-int get_file_list(char *path_tmp_full, char **file_list){
-
-	DIR* directory;
-	struct dirent* readen_file;
-	int nb_file = 0;
-	int max_file = MAX_FILE;
-
-	directory = opendir(path_tmp_full);
-	if(!directory)syserror(2);
-
-	while(readen_file=readdir(directory)){
-		
-		if(nb_file==max_file){
-			max_file=max_file*2;
-			char ** file_list_tmp = malloc(sizeof(char*)*max_file);
-			memcpy(file_list_tmp, file_list, sizeof(file_list)*max_file/2);
-			
-			//for(int i=0; i<nb_file; i++){
-			//	free(file_list[i]);
-			//}
-			free(file_list);
-
-			file_list = file_list_tmp;
-		}
-		file_list[nb_file]=malloc(sizeof(char)*MAX_FILENAME);
-		strcpy(file_list[nb_file++],readen_file->d_name);
-
-	}
-	closedir(directory);
-	return nb_file;
-}
-*/
-
-/*
  * Sort a file list
  */
 void sort_list(char **file_list, int nb_file){
@@ -358,7 +323,7 @@ void list_file(char *path, int opt_a, int opt_R){
 	sort_list(file_list, nb_file);
 	total_block = get_total_blocks(path_tmp_full, file_list, nb_file, opt_a);
 
-	printf("\n%s: \n",path);
+	printf("%s: \n",path);
 	printf("total %d\n",total_block);
 
 	for(int i=0; i<nb_file; i++){
@@ -371,6 +336,7 @@ void list_file(char *path, int opt_a, int opt_R){
 		int gid;
 		char *groupname;
 		char rights[]="----------";
+		char rights_link[]="----------";
 		int nb_hard_link;		
 		int file_size;
 		char date_mod[64];
@@ -379,11 +345,15 @@ void list_file(char *path, int opt_a, int opt_R){
 
 		//in process
 		struct stat *buf_stat;
+		struct stat *link_buf_stat;
 		int fullpath_size;
 		int is_exec = 0;
 		int is_folder = 0;
 		int is_link = 0;			
 
+		int link_is_exec = 0;
+		int link_is_folder = 0;
+		int link_is_link = 0;			
 
 		filename = file_list[i];
 		if(opt_a||filename[0]!='.'){		
@@ -396,7 +366,8 @@ void list_file(char *path, int opt_a, int opt_R){
 			strcat(fullpath,filename);
 		
 			buf_stat = malloc(sizeof(struct stat));
-		
+			link_buf_stat = malloc(sizeof(struct stat));
+
 			if(lstat(fullpath, buf_stat)==-1){
 				syserror(3);
 			}
@@ -412,7 +383,21 @@ void list_file(char *path, int opt_a, int opt_R){
 			if(rights[0]=='l'){
 				is_link=1;	
 				int size=readlink(fullpath, link_dest, sizeof(char)*MAX_FILENAME);
-				link_dest[size]='\0';		
+				link_dest[size]='\0';	
+				if(lstat(link_dest, link_buf_stat)==-1){
+					syserror(3);
+				}
+				setrights(rights_link, link_buf_stat);
+				if(rights_link[3]=='x'||rights_link[6]=='x'||rights_link[9]=='x'){
+					link_is_exec=1;
+				}
+				if(rights_link[0]=='d'){
+					link_is_folder=1;			
+				}
+				if(rights_link[0]=='l'){
+					link_is_link=1;
+				}
+				
 			}
 			
 
@@ -459,8 +444,14 @@ void list_file(char *path, int opt_a, int opt_R){
 			else if(is_link){
 				printf("%s %d %s %s %d\t%s ",
 					rights, nb_hard_link, username, groupname, file_size, date_mod);
-				printf(CYAN("%s"),filename);	
-				printf(" -> %s \n",link_dest);			
+				printf(CYAN("%s"),filename);
+				if(link_is_folder)	
+					printf(BLUE(" -> %s \n"),link_dest);				
+				else if(link_is_link)	
+					printf(CYAN(" -> %s \n"),link_dest);
+				else if(link_is_exec)	
+					printf(VERT(" -> %s \n"),link_dest);
+							
 			}			
 			else if(is_exec){
 				printf("%s %d %s %s %d\t%s ",
@@ -474,6 +465,8 @@ void list_file(char *path, int opt_a, int opt_R){
 	
 			free(fullpath);
 			free(buf_stat);
+			free(link_buf_stat);
+			
 		}
 		free(link_dest);
 		
@@ -546,12 +539,10 @@ int main(int argc, char *argv[]){
 	int opt_R = 0;
 	
 	for(int i=1; i<argc; i++){
-		//printf("%s ",argv[i]);
 		if(argv[i][0]=='-'){
 			crs = 1; 
 			while(argv[i][crs]){
 				cur_opt=argv[i][crs++];
-				//printf(">%c",cur_opt);
 				switch(cur_opt){
 					case 'a':
 						opt_a = 1;
@@ -580,15 +571,19 @@ int main(int argc, char *argv[]){
 		
 	}
 	
-	printf("options %d %d ",opt_a, opt_R);
-	printf("nb path %d \n",nb_path);
+	//printf("options %d %d ",opt_a, opt_R);
+	//printf("nb path %d \n",nb_path);
 	
-	printf("Liste path: \n");
-	
-	for(int i=0; i<nb_path; i++){
-		//printf(">> %s\n", tab_path[i]);
-		list_file(tab_path[i],opt_a,opt_R);
+	if(nb_path==0){
+		list_file(".",opt_a, opt_R);
 	}
+	else{
+		for(int i=0; i<nb_path; i++){
+			list_file(tab_path[i],opt_a,opt_R);
+		}
+	}
+
+	
 	
 	//list_file("/home/loick/Bureau/Nouveau dossier",1,1);
 	//list_file("~/Bureau");
