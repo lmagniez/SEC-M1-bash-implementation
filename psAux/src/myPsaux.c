@@ -1,6 +1,8 @@
 #include "../lib/myPsaux.h"
 
-
+//***********************************************************
+//************************ COMMANDE *************************
+//***********************************************************
 char * recup_comm(char * path){
     char * comm = NULL;
     char c;
@@ -46,6 +48,9 @@ void afficher_cmdLine(char * path){
     close(idfichier);
 }
 
+//***********************************************************
+//************************* STATE ***************************
+//***********************************************************
 void afficher_state(char * path){
     printf("--State : ");
 
@@ -63,16 +68,18 @@ void afficher_state(char * path){
     close(idfichier);
 }
 
+//***********************************************************
+//************************* USER ****************************
+//***********************************************************
 int recup_uid(char * path){
-    int nb_ligne = 0;
-    int parcour_ligne = 0;
     char * uid = NULL;
     int nb_mot = 0;
+    int parcour_ligne = 0;
     FILE * fp = myFopen(strcat(path,STATUS));
     char * string_to_read = malloc(sizeof(char)*256);
 
-    while(fgets(string_to_read, 256, fp) && nb_ligne < 9){
-        nb_ligne++;
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,UID))break;
     }
 
     while(parcour_ligne < strlen(string_to_read)){
@@ -99,7 +106,9 @@ void afficher_user(char * path){
         printf(" %-8.8s \n", pwd->pw_name);
 }
 
-
+//***********************************************************
+//************************** TTY ****************************
+//***********************************************************
 char * getTTY(char * path){
     char c ;
     char * tty = "";
@@ -157,7 +166,7 @@ char * read_dev(char * tty){
     DIR *rep = opendir(DEV);
 
     while ((lecture = readdir(rep))) {
-        if(lecture->d_type == DT_CHR && strstr(lecture->d_name,"tty")){
+        if(lecture->d_type == DT_CHR && strstr(lecture->d_name,TTY)){
             strcpy(path,DEV); 
             path = strcat(path,lecture->d_name); 
 
@@ -181,7 +190,6 @@ char * getNameTty(char * tty){ //mettre dans h
     return !strcmp(name,"") == 0 ? name : read_dev(tty);
 } 
 
-
 void afficher_tty(char * path){
      printf("--TTY : ");
 
@@ -192,23 +200,137 @@ void afficher_tty(char * path){
      printf("%s \n",name);
 }
 
+//***********************************************************
+//********************** START TIME  ************************
+//***********************************************************
 
 void afficher_start_time(char * path){
     printf("--Start time : ");
+    
+    struct stat buf_stat;
+    stat(path, &buf_stat);
 
-   long unsigned int start_time;
+    time_t time = birthtime(buf_stat);
+    struct tm * hours = localtime(&time);
+    printf("%d:%d \n",hours->tm_hour,hours->tm_min);
+}
+
+//***********************************************************
+//************************* RSS *****************************
+//***********************************************************
+int recup_rss(char * path){
+    char * rss = "";
+    int nb_mot = 0;
+    int parcour_ligne = 0;
+    FILE * fp = myFopen(strcat(path,STATUS));
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,"VmRSS"))break;
+    }
+
+    while(parcour_ligne < strlen(string_to_read)){
+        if(nb_mot > 2) break;
+        if(string_to_read[parcour_ligne] == '\t'){nb_mot++;}
+        else if(nb_mot >= 1){
+            rss = concat_charactere(rss,string_to_read[parcour_ligne]);
+        }
+         parcour_ligne++;
+    }
+
+    myFclose(fp);
+
+    return strcmp(rss,"")==0 ? 0 : atoi(rss);
+}
+
+void afficher_rss(char * path){
+    printf("--RSS : ");
+ 
+
+    int rss = recup_rss(path);
+    
+    printf("%d \n",rss);
+}
+
+//***********************************************************
+//************************* VSZ *****************************
+//***********************************************************
+int recup_vsz(char * path){
+    char * vsz = "";
+    int nb_mot = 0;
+    int parcour_ligne = 0;
+    FILE * fp = myFopen(strcat(path,STATUS));
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,"VmSize"))break;
+    }
+
+    while(parcour_ligne < strlen(string_to_read)){
+        if(nb_mot > 2) break;
+        if(string_to_read[parcour_ligne] == '\t'){nb_mot++;}
+        else if(nb_mot >= 1){
+            vsz = concat_charactere(vsz,string_to_read[parcour_ligne]);
+        }
+         parcour_ligne++;
+    }
+
+    myFclose(fp);
+
+    return strcmp(vsz,"")==0 ? 0 : atoi(vsz);
+}
+
+void afficher_vsz(char * path){
+    printf("--VSZ : ");
+ 
+    int vsz = recup_vsz(path);
+    
+    printf("%d \n",vsz);
+}
+
+//***********************************************************
+//************************* TIME ****************************
+//***********************************************************
+int recup_time( int idfichier ){
+    char c;
+    char * time = "";
+
+    while (read(idfichier,&c,sizeof(char)) != 0){ 
+        if(c == ' ') break;
+        time = concat_charactere(time,c);
+    }
+
+    return atoi(time);
+}
+
+void afficher_time(char * path){
+    printf("--TIME : ");
+
+    int utime,stime,cutime,cstime;
 
     int idfichier = openFile(strcat(path,STAT));
 
-    read_file_nbMot(idfichier,START_TIME_POSITION);
+    read_file_nbMot(idfichier,TIME_POSITION);
 
-    read(idfichier,&start_time,sizeof(long unsigned int ));
+    utime = recup_time(idfichier);
+    stime = recup_time(idfichier);
+    cutime = recup_time(idfichier);
+    cstime = recup_time(idfichier);
 
     close(idfichier);
 
-    printf(" %lu \n",start_time);
+    int time_target =cstime / sysconf(_SC_CLK_TCK) + utime / sysconf(_SC_CLK_TCK) +cutime / sysconf(_SC_CLK_TCK) + stime / sysconf(_SC_CLK_TCK);
+
+    int minute , seconde ;
+    minute = time_target / ONE_MINUTE;
+    seconde = time_target - (minute * ONE_MINUTE);
+
+    printf("%02d:%02d\n",minute,seconde);
 }
 
+//***********************************************************
+//********************** READ PROC  *************************
+//***********************************************************
 void detailsProcessus(char * processusPID){
     
     printf("-----------------------------------\n");
@@ -219,7 +341,9 @@ void detailsProcessus(char * processusPID){
     afficher_state(copy_path(processus_path));
     afficher_tty(copy_path(processus_path));
     afficher_start_time(copy_path(processus_path));
-
+    afficher_rss(copy_path(processus_path));
+    afficher_vsz(copy_path(processus_path));
+    afficher_time(copy_path(processus_path));
     printf("-----------------------------------\n");
 }
 
