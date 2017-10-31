@@ -10,10 +10,13 @@
 int yylex();
 int yyerror(char*);
 
-//extern YY_FLUSH_BUFFER;
-//extern YYACCEPT;
-//extern YYABORT;
-//extern YYRESET;
+/*extern YY_FLUSH_BUFFER;
+extern YYACCEPT;
+extern YYABORT;
+extern YYRESET;
+extern YYTEST;
+extern int YYLESS(int n);
+*/
 
 
 
@@ -55,6 +58,7 @@ int yyerror(char *s) {
 
 void handler_sigint(int arg){
 	char res = ' ';
+	char *buf = malloc(sizeof(char)*30);
 	printf("\n\nDo you really wish to quit ?\n yes=y\n no=n\n");
 	//signal(SIGINT, SIG_DFL);
 	
@@ -63,26 +67,36 @@ void handler_sigint(int arg){
 	//fflush(stdin);
 	//while (!feof(stdin))getchar();
 	
-	scanf(" %c",&res);
+	//scanf("%c",&res);
+	//fgets(buf, 30, stdin);
+	scanf(" %s",buf);
+	res=buf[0];
+	
 	//ungetc(res,stdin);
 	//write(0, "a", 1);
+
 	
-	printf("res: >%c<", res);
+	printf("res: >%c<\n", res);
 	switch(res){
 		case 'y':
 			printf("quitte le programme...\n");
 			exit(0);
 		break;
 		case 'n':
-			printf("\n> ");
-			fflush(stdout);
+			//printf("\n> ");
+			//fflush(stdout);
+			
+			//yyless(0);
+			return;
 		break;
 		default:
-			printf("\n> ");
-			fflush(stdout);
+			//printf("\n> ");
+			//fflush(stdout);
+			return;
 		break;
 	} 
-	change_sigint();
+	return;
+	//change_sigint();
 }
 
 
@@ -93,9 +107,8 @@ void change_sigint(void){
 
 int main(void) {
 	
-	while(1){
-		change_sigint();
-		printf("> ");
-		yyparse();
-	}
+	change_sigint();
+	printf("> ");
+	fflush(stdout);
+	yyparse();
 }
