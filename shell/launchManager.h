@@ -8,11 +8,17 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <string.h>
+#include <signal.h>
 
 void displayStack(void);
 void addToStack(char*);
 void endInitStack(void);
 void launchCommands(void);
 void displayListCommand(void);
+
+//handler
+void change_sigint(void);
+void freeList(void);
 
 #endif

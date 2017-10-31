@@ -5,9 +5,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 int yylex();
 int yyerror(char*);
+
+//extern YY_FLUSH_BUFFER;
+//extern YYACCEPT;
+//extern YYABORT;
+//extern YYRESET;
+
+
 
 %}
 
@@ -44,7 +52,50 @@ int yyerror(char *s) {
 	return 1;
 }
 
+
+void handler_sigint(int arg){
+	char res = ' ';
+	printf("\n\nDo you really wish to quit ?\n yes=y\n no=n\n");
+	//signal(SIGINT, SIG_DFL);
+	
+	
+	//res = getchar();
+	//fflush(stdin);
+	//while (!feof(stdin))getchar();
+	
+	scanf(" %c",&res);
+	//ungetc(res,stdin);
+	//write(0, "a", 1);
+	
+	printf("res: >%c<", res);
+	switch(res){
+		case 'y':
+			printf("quitte le programme...\n");
+			exit(0);
+		break;
+		case 'n':
+			printf("\n> ");
+			fflush(stdout);
+		break;
+		default:
+			printf("\n> ");
+			fflush(stdout);
+		break;
+	} 
+	change_sigint();
+}
+
+
+void change_sigint(void){
+	signal(SIGINT, handler_sigint);
+
+}
+
 int main(void) {
-	printf("> ");
-	yyparse();
+	
+	while(1){
+		change_sigint();
+		printf("> ");
+		yyparse();
+	}
 }
