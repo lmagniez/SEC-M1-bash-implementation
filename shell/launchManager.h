@@ -10,12 +10,17 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <signal.h>
+#include <errno.h>
+
+#define CMD_DIR "/bin/"
+#define ARRAY_SIZE_DEFAULT 10
 
 void displayStack(void);
 void addToStack(char*);
 void endInitStack(void);
 void launchCommands(void);
 void displayListCommand(void);
+char **getCommandsArray(char*);
 
 //handler
 void change_sigint(void);

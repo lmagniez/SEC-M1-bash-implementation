@@ -9,7 +9,7 @@
 	return EXIT;
 }
 
-([a-z]*[\ -]*)* {
+([a-zA-Z]*[\ -]*)* {
 	yylval=yytext;
 	return (CMD);
 }

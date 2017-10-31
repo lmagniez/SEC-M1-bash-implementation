@@ -39,26 +39,68 @@ void endInitStack(void) {
 			push(cmdStack, val1);
 		}
 	}
-
-	displayListCommand();
+	//getCommandsArray(pop(cmdStack));
+	//displayListCommand();
+	launchCommands();
 }
 
 void launchCommands(void) {
 	while(!empty(cmdStack)) {
-		char *operator = pop(operatorStack);
+		//char *operator = pop(operatorStack);
 		char *cmd = pop(cmdStack);
+		char** commandArray = getCommandsArray(cmd);
 
 		pid_t pid = fork();
 
 		if (pid == 0) {
-
+			execv(commandArray[0], &commandArray[1]);
+			perror("Error exec");
+			exit(errno);
 		} else if (pid > 0) {
 			int status;
 			wait(&status);
-		} else {
 
+		} else {
+			perror("Error on fork");
+			exit(errno);
 		}
 	}
+}
+
+char **getCommandsArray(char* commandLine) {
+	printf("ligne de commande : %s", commandLine);
+	char *test = strtok(commandLine, " ");
+	char *firstValue = malloc(strlen(CMD_DIR) + strlen(test) + 1);
+	char **array = malloc(sizeof(char*) * ARRAY_SIZE_DEFAULT);
+	int index = 1;
+	int arraySize = ARRAY_SIZE_DEFAULT;
+	strcpy(firstValue, CMD_DIR);
+	strcat(firstValue, test);
+	array[0] = firstValue;
+
+	while(test != NULL) {
+		test = strtok(NULL, " ");
+		if (index == arraySize) {
+			arraySize*=2;
+			array = realloc(array, sizeof(char*) * arraySize);
+		}
+		array[index] = test;
+		index++;
+	}
+
+	//display test
+	int i;
+	for (i = 0; i < index; i++) {
+		printf("value : %s", array[i]);
+	}
+
+	if (array[i] == NULL) {
+		printf("NULL");
+	}
+
+	free(commandLine);
+
+	return array;
 }
 
 void freeList(){
@@ -94,7 +136,3 @@ void displayListCommand(void) {
 		free(cmd);
 	}
 }
-
-
-
-
