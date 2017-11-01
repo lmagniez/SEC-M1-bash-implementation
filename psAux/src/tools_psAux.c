@@ -4,7 +4,7 @@ char * concat_charactere(char * str , char c){
 
     int len = str == NULL ? 0 : strlen(str);
 
-    str = str == NULL ? malloc(sizeof(char)*2) : str;
+    str = str == NULL ? realloc(str,sizeof(char)*2) : str;
 
     char * newChaine = malloc(sizeof(char)*(len+1));
 
@@ -56,6 +56,8 @@ char * copy_path(char * path){
 
     strcpy(path_cmdline,path);
 
+    path[strlen(path)] = '\0';
+
     return path_cmdline;
 }
 
@@ -68,4 +70,46 @@ void read_file_nbMot(int idfichier,int position){
 }
 
 
+char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
+    char * value = "";
+    int nb_mot = 0;
+    int parcour_ligne = 0;
 
+    FILE * fp = myFopen(strcat(path,file));
+
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,key))break;
+    }
+    
+    if(strstr(string_to_read,key)){
+        while(parcour_ligne < strlen(string_to_read)){
+            if(nb_mot > nb_mot_max) break;
+            if( string_to_read[parcour_ligne] == ' ' &&  string_to_read[parcour_ligne-1] != ' '){nb_mot++;}
+            else if(nb_mot >= 1){
+                value = concat_charactere(value,string_to_read[parcour_ligne]);
+            }
+         parcour_ligne++;
+        }
+    }
+
+    myFclose(fp);
+
+    return value;
+}
+
+char * get_ligne(char * path,char * key,char * file){
+
+    FILE * fp = myFopen(strcat(path,file));
+
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,key))break;
+    }
+
+    myFclose(fp);
+
+    return string_to_read;
+}

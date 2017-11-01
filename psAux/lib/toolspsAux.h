@@ -26,3 +26,7 @@ char * recupPath(char * processus);
 char * copy_path(char * path);
 
 void read_file_nbMot(int idfichier,int position);
+
+char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file);
+
+char * get_ligne(char * path,char * key,char * file);

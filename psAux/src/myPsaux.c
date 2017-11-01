@@ -219,28 +219,8 @@ void afficher_start_time(char * path){
 //************************* RSS *****************************
 //***********************************************************
 int recup_rss(char * path){
-    char * rss = "";
-    int nb_mot = 0;
-    int parcour_ligne = 0;
-    FILE * fp = myFopen(strcat(path,STATUS));
-    char * string_to_read = malloc(sizeof(char)*256);
-
-    while(fgets(string_to_read, 256, fp)){
-        if(strstr(string_to_read,"VmRSS"))break;
-    }
-
-    while(parcour_ligne < strlen(string_to_read)){
-        if(nb_mot > 2) break;
-        if(string_to_read[parcour_ligne] == '\t'){nb_mot++;}
-        else if(nb_mot >= 1){
-            rss = concat_charactere(rss,string_to_read[parcour_ligne]);
-        }
-         parcour_ligne++;
-    }
-
-    myFclose(fp);
-
-    return strcmp(rss,"")==0 ? 0 : atoi(rss);
+    char * rss = get_value_by_key(path,"VmRSS",2,STATUS);
+    return strcmp(rss,"")== 0 ? 0 : atoi(rss);
 }
 
 void afficher_rss(char * path){
@@ -256,27 +236,7 @@ void afficher_rss(char * path){
 //************************* VSZ *****************************
 //***********************************************************
 int recup_vsz(char * path){
-    char * vsz = "";
-    int nb_mot = 0;
-    int parcour_ligne = 0;
-    FILE * fp = myFopen(strcat(path,STATUS));
-    char * string_to_read = malloc(sizeof(char)*256);
-
-    while(fgets(string_to_read, 256, fp)){
-        if(strstr(string_to_read,"VmSize"))break;
-    }
-
-    while(parcour_ligne < strlen(string_to_read)){
-        if(nb_mot > 2) break;
-        if(string_to_read[parcour_ligne] == '\t'){nb_mot++;}
-        else if(nb_mot >= 1){
-            vsz = concat_charactere(vsz,string_to_read[parcour_ligne]);
-        }
-         parcour_ligne++;
-    }
-
-    myFclose(fp);
-
+    char * vsz = get_value_by_key(path,"VmSize",2,STATUS);
     return strcmp(vsz,"")==0 ? 0 : atoi(vsz);
 }
 
@@ -319,6 +279,7 @@ void afficher_time(char * path){
 
     close(idfichier);
 
+    //TO DO VERIF TIME
     long int time_target = cstime / sysconf(_SC_CLK_TCK) + cutime / sysconf(_SC_CLK_TCK);
 
     int minute , seconde ;
@@ -327,6 +288,69 @@ void afficher_time(char * path){
 
     printf("%02d:%02d\n",minute,seconde);
 }
+
+//***********************************************************
+//****************** MEMORY POURCENTAGE *********************
+//***********************************************************
+void afficher_memory_pourcentage(char * path){
+    printf("--%%MEM : ");
+
+    char * proc  = malloc((strlen(PROC)+1)*sizeof(char));
+    char * meminfo  = malloc((strlen(MEM_INFO)+1)*sizeof(char));
+    
+    strcpy(proc,PROC);
+    strcpy(meminfo,MEM_INFO);
+
+    char * memory_total = get_value_by_key(proc,"MemTotal",2,meminfo);
+
+    char * rss = get_value_by_key(path,"VmRSS",2,STATUS);
+
+    float pourcentage = ( (atoi(rss) * 1.0) / atoi(memory_total) ) * 100;
+
+    //TO DO : ARRONDI A L'INFERRIEUR
+    printf("%3.1f %% \n" , pourcentage);
+
+    free(proc);
+    free(meminfo);
+}
+
+//***********************************************************
+//******************** CPU POURCENTAGE **********************
+//***********************************************************
+int get_cpu_time(){
+    int time =0 , parcour_ligne = 0 , nb_mot = 0;
+    char * proc  = malloc((strlen(PROC)+1)*sizeof(char));
+    char * stat  = malloc((strlen(STAT_FILE)+1)*sizeof(char));
+    
+    strcpy(proc,PROC);
+    strcpy(stat,STAT_FILE);
+
+    char * ligne = get_ligne(proc,"cpu",stat);
+
+    printf("%s\n",ligne );
+/*
+    while(parcour_ligne < strlen(ligne)){
+        if( nb_mot!=0 && ligne[parcour_ligne] == ' ' &&  ligne[parcour_ligne-1] != ' '){
+            nb_mot++;
+            time += atoi(value);        
+            value = "";
+        }
+        value = concat_charactere(value,ligne[parcour_ligne]);
+        parcour_ligne++;
+    }*/
+
+    free(proc);
+    free(stat);
+
+    return 0;
+}
+
+
+void afficher_cpu_pourcentage(char * path){
+    int time_cpu = get_cpu_time();
+}
+
+
 
 //***********************************************************
 //********************** READ PROC  *************************
@@ -344,6 +368,8 @@ void detailsProcessus(char * processusPID){
     afficher_rss(copy_path(processus_path));
     afficher_vsz(copy_path(processus_path));
     afficher_time(copy_path(processus_path));
+    afficher_memory_pourcentage(copy_path(processus_path));
+    afficher_cpu_pourcentage(copy_path(processus_path));
     printf("-----------------------------------\n");
 }
 

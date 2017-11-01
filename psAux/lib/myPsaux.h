@@ -12,6 +12,9 @@
 #define DEV_PTS "/dev/pts/"
 #define DEV "/dev/"
 
+#define MEM_INFO "meminfo"
+#define STAT_FILE "stat"
+
 #define ONE_MINUTE 60.0
 
 #define NAME_POSITION 1
@@ -54,6 +57,11 @@ void afficher_vsz(char * path);
 
 int recup_time( int idfichier );
 void afficher_time(char * path);
+
+void afficher_memory_pourcentage(char * path);
+
+int get_cpu_time();
+void afficher_cpu_pourcentage(char * path);
 
 void detailsProcessus(char * processusPID);
 
