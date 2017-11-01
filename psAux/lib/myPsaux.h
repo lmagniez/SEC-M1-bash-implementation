@@ -17,7 +17,7 @@
 #define NAME_POSITION 1
 #define STATE_POSITION 2
 #define TTY_POSITION 6
-#define TIME_POSITION 12
+#define TIME_POSITION 11
 #define START_TIME_POSITION 17
 #define READ_CMD_LINE 15
 
@@ -43,7 +43,6 @@ char * read_dev_pts(char * tty);
 char * read_dev(char * tty);
 char * getTTY(char * path);
 void afficher_tty(char * path);
-
 
 void afficher_start_time(char * path);
 
