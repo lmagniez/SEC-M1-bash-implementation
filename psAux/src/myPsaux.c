@@ -306,7 +306,7 @@ int recup_time( int idfichier ){
 void afficher_time(char * path){
     printf("--TIME : ");
 
-    int utime,stime,cutime,cstime;
+    float utime,stime,cutime,cstime;
 
     int idfichier = openFile(strcat(path,STAT));
 
@@ -319,7 +319,7 @@ void afficher_time(char * path){
 
     close(idfichier);
 
-    int time_target =cstime / sysconf(_SC_CLK_TCK) + utime / sysconf(_SC_CLK_TCK) +cutime / sysconf(_SC_CLK_TCK) + stime / sysconf(_SC_CLK_TCK);
+    long int time_target = cstime / sysconf(_SC_CLK_TCK) + cutime / sysconf(_SC_CLK_TCK);
 
     int minute , seconde ;
     minute = time_target / ONE_MINUTE;
