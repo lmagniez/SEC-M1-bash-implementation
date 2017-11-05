@@ -101,7 +101,7 @@ void lire_doc(char * path){
 // fin -> end of the expression for concatenating later (dir*/file)
 // NOTE: if elt==null, it means there are no * anymore
 void get_path_from_expression(char * expression, char **folder, char **elt, char **fin){
-	printf(">>>%s \n", expression);
+	//printf(">>>%s \n", expression);
 	int crs = 0;
 	int crs2 = 0;
 	int len = strlen(expression)+1;
@@ -117,7 +117,7 @@ void get_path_from_expression(char * expression, char **folder, char **elt, char
 		if(expression[i]=='*')
 			break;
 	}
-	printf("crs : %d \n",crs);
+	//printf("crs : %d \n",crs);
 	
 	//look for the next slash and check if there's star
 	for(int i=crs; i<len; i++){
@@ -148,20 +148,20 @@ void get_path_from_expression(char * expression, char **folder, char **elt, char
 	if(len_fin>MAX_LEN)
 		*fin=realloc(*fin,sizeof(char)*len_fin);
 	
-	printf("len : %d %d %d\n", len_folder, len_elt, len_fin);
+	//printf("len : %d %d %d\n", len_folder, len_elt, len_fin);
 	memcpy(*folder,expression,sizeof(char)*len_folder);
 	memcpy(*elt,expression+len_folder,sizeof(char)*len_elt);
 	memcpy(*fin,expression+(len_folder+len_elt),sizeof(char)*len_fin);
 	(*folder)[len_folder]='\0';(*elt)[len_elt]='\0';(*fin)[len_fin]='\0';
 	
 	
-	printf("%d %d\n", crs, crs2);
+	//printf("%d %d\n", crs, crs2);
 	
 }
 
 
 int elt_belong_to_expr(char *expr, char *elt){
-	printf("-- belong to expr, expr-> %s elt-> %s \n",expr,elt);
+	//printf("-- belong to expr, expr-> %s elt-> %s \n",expr,elt);
 	//get the first sub string to scan
 	int crs_expr = 0;
 	int crs_elt = 0;
@@ -188,7 +188,7 @@ int elt_belong_to_expr(char *expr, char *elt){
 	substring = malloc(sizeof(char)*(crs_expr+1));
 	memcpy(substring,expr,sizeof(char)*(crs_expr));
 	substring[crs_expr]='\0';
-	printf("first: %s\n",substring);
+	//printf("first: %s\n",substring);
 	
 	if(*substring!='\0'){
 		char *res = strstr(elt,substring);
@@ -200,7 +200,7 @@ int elt_belong_to_expr(char *expr, char *elt){
 	crs_elt = strlen(substring);
 	free(substring);
 	
-	printf("> %s \n", elt+crs_elt);
+	//printf("> %s \n", elt+crs_elt);
 	if(*(elt+crs_elt)=='\0')
 		return 1;
 	
@@ -208,12 +208,12 @@ int elt_belong_to_expr(char *expr, char *elt){
 	while(crs_expr<len_expr&&crs_elt<len_elt){
 		//skip the multiple stars
 		while(expr[crs_expr]!='\0'&&expr[crs_expr]=='*'){
-			crs_expr++; printf("skip *\n");
+			crs_expr++; //printf("skip *\n");
 		}
 		crs_substring_deb = crs_expr;
 		
 		//last char is star -> accept
-		printf("last c : %c\n",expr[crs_expr]);
+		//printf("last c : %c\n",expr[crs_expr]);
 		if(expr[crs_expr]=='\0')
 			return 1;
 		
@@ -236,7 +236,7 @@ int elt_belong_to_expr(char *expr, char *elt){
 		//if not the last substring, check with the current element
 		char *res = strstr(elt+crs_elt,substring);
 		if(!res){
-			printf("does not correspond!\n");
+			//printf("does not correspond!\n");
 			free(substring);
 			return 0;
 		}
@@ -244,20 +244,20 @@ int elt_belong_to_expr(char *expr, char *elt){
 			crs_elt+=len_substring;
 		}
 		
-		printf("substring! %s\n",substring);
+		//printf("substring! %s\n",substring);
 		free(substring);
 		
 	}
 	
 	if(*substring){
-		printf("last substring!! %s\n",substring);
+		//printf("last substring!! %s\n",substring);
 		char *res = elt+crs_elt;
 		while(res){
-			printf(">> %s\n",elt+crs_elt);
+			//printf(">> %s\n",elt+crs_elt);
 			res=strstr(elt+crs_elt,substring);
-			printf("add: %d\n", (res-(elt+crs_elt)));
+			//printf("add: %d\n", (res-(elt+crs_elt)));
 			if(res)crs_elt = crs_elt + (res-(elt+crs_elt)) + len_substring;
-			printf("res! %d len : %d \n", crs_elt, len_substring);
+			//printf("res! %d len : %d \n", crs_elt, len_substring);
 			//return 0;
 		}
 	}
@@ -268,11 +268,11 @@ int elt_belong_to_expr(char *expr, char *elt){
 	
 	//didn't finish reading one of the element
 	if(crs_elt<len_elt){
-		printf("didn't finish elt!\n");
+		//printf("didn't finish elt!\n");
 		return 0;
 	}
 	if(crs_expr<len_expr){
-		printf("didn't finish expr!\n");
+		//printf("didn't finish expr!\n");
 		return 0;
 	}
 	
@@ -284,128 +284,13 @@ int elt_belong_to_expr(char *expr, char *elt){
 // *e*e tester -> true
 // abc*efg*ijk abcdefghijk -> true 
 // abc*d abcd -> true
-/*
-int elt_belong_to_expr(char *expr, char *elt){
-	printf("-- belong to expr, expr-> %s elt-> %s \n",expr,elt);
-	
-	//get the first sub string to scan
-	int crs_expr = 0;
-	int crs_elt = 0;
-	
-	int crs_substring_deb = 0;
-	int crs_substring_fin = 0;
-	int oldpos = 0;
-	
-	//expr
-	char *substring;
-	//elt
-	char *newpos;
-	int last_substring = 0;
-	
-	int len_expr = strlen(expr);
-	int len_elt = strlen(elt);
-	int len_substring = 0;
-	
-	while(crs_expr<len_expr&&crs_elt<len_elt){
-		last_substring = 0;
-		printf("---> expr: %s elt: %s <---\n",expr+crs_expr, elt+crs_elt);
-		
-		//search for the first char
-		while(crs_expr<strlen(expr)&&expr[crs_expr]=='*'){
-			printf("1++\n");
-			crs_expr++;
-		}
-		if(crs_expr==strlen(expr)){
-			printf("ok *!!\n");
-			return 1;
-		}
-		crs_substring_deb=crs_expr++;
-		printf("first char %d\n",crs_substring_deb);
-		
-		
-		//search for the next *
-		while(crs_expr<strlen(expr)&&expr[crs_expr]!='*'){
-			printf("2++\n");
-			crs_expr++;
-		}
-		crs_substring_fin=crs_expr;
-		
-		printf("last char %d\n",crs_substring_fin);
-		
-		len_substring = (crs_substring_fin-crs_substring_deb);
-		printf("expr: %s, expr[fin]=%c\n",expr, expr[crs_substring_fin]);
-		if(expr[crs_substring_fin]=='\0'){
-			printf("FIN!!!!!\n");
-			last_substring=1;
-		}
-		
-		//red only *, accept 
-		if(len_substring==0)
-			return 1;
-		
-		//cpy the new substring
-		substring = malloc(sizeof(char)*(len_substring+1));
-		memcpy(substring,expr+crs_substring_deb,sizeof(char)*len_substring);
-		substring[len_substring]='\0';
-		
-		printf("deb: %d fin: %d len:%d\n",crs_substring_deb,crs_substring_fin, len_substring);
-		printf("substring: %s\n",substring);
-		
-		
-		//check if substring is in elt
-		newpos = strstr(elt+crs_elt,substring);
-		
-		//last iteration case (te*t tetttttt)
-		if(last_substring){
-			char *tmp_newpos=newpos;
-			while(*tmp_newpos!='\0'){
-				printf("pos: %s, crs: %d len: %d \n",newpos, crs_elt, len_substring);
-				newpos=tmp_newpos;
-				crs_elt = newpos-elt;
-				tmp_newpos = strstr(elt+crs_elt,substring);
-				if(!tmp_newpos)break;
-				tmp_newpos+=len_substring;
-			}
-			newpos+=-len_substring;
-		}
-		
-		free(substring);
-		
-		if(newpos == NULL){
-			return 0;
-		}
-		
-		// must avoid to skip char (p*,compil)
-		//???
-		
-		newpos=newpos+len_substring;
-		//change elt position
-		crs_elt = newpos-elt;
-		
-		
-		if(newpos == NULL){
-			return 0;
-		}
-		printf("new : %s %d\n",newpos, crs_elt);
-		
-		
-	}
-	
-	//didn't finish the elt reading
-	if(crs_elt<len_elt)
-		return 0;
-	
-	//correspond
-	return 1;
-}
-*/
 
 // read the files in the folder folder, and check if they match with elt.
 // search_folder -> Only focus on folder 
 // return nb file
 int search_in_dir(char *folder, char *elt, char *fin, int search_folder, char ***res){
-	printf(">>>>>>>>>>> search in dir: dir->%s elt->%s fin->%s\n", folder, elt, fin);
-	printf("cherche que dossier? %d\n",search_folder);
+	//printf(">>>>>>>>>>> search in dir: dir->%s elt->%s fin->%s\n", folder, elt, fin);
+	//printf("cherche que dossier? %d\n",search_folder);
 	
 	DIR* directory;
 	struct dirent* readen_file;
@@ -470,11 +355,11 @@ int search_in_dir(char *folder, char *elt, char *fin, int search_folder, char **
 				strcpy(tmp_elt, elt);
 			}
 			
-			printf("tmpelt! %s tmp_file! %s\n",tmp_elt, tmp_file);
+			//printf("tmpelt! %s tmp_file! %s\n",tmp_elt, tmp_file);
 			
 			
 			if(elt_belong_to_expr(tmp_elt, tmp_file)){
-				printf("ADD!! %s \n",tmp_file);
+				//printf("ADD!! %s \n",tmp_file);
 				file_list[nb_file++]= tmp_file;
 			}
 		}
@@ -484,9 +369,10 @@ int search_in_dir(char *folder, char *elt, char *fin, int search_folder, char **
 	}
 	closedir(directory);
 	
+	/*
 	for(int i=0; i<nb_file; i++){
 		printf("> %s\n",file_list[i]);
-	}
+	}*/
 	
 	/*
 	for(int i=0; i<nb_file; i++){
@@ -501,13 +387,13 @@ int search_in_dir(char *folder, char *elt, char *fin, int search_folder, char **
 	free(dir_list);
 	
 	*res=file_list;
-	printf("RETOUR NB FILE %d\n",nb_file);
+	//printf("RETOUR NB FILE %d\n",nb_file);
 	return nb_file;
 }
 
 
 char ** get_elements(char *expr){
-	printf("=================== get elements %s \n",expr);
+	//printf("=================== get elements %s \n",expr);
 	
 	
 	char ** elements = malloc(sizeof(char*)*MAX_FILE);
@@ -525,9 +411,9 @@ char ** get_elements(char *expr){
 	
 	
 	
-	printf("fold: %s, n: %d, c: %c\n", folder, len_folder, folder[len_folder]); 
-	printf("elt: %s\n", elt); 
-	printf("fin: %s\n", fin); 
+	//printf("fold: %s, n: %d, c: %c\n", folder, len_folder, folder[len_folder]); 
+	//printf("elt: %s\n", elt); 
+	//printf("fin: %s\n", fin); 
 	
 	
 	if(*elt!='\0'){
@@ -539,15 +425,15 @@ char ** get_elements(char *expr){
 			search_folder = 1;
 		}
 		nb_file = search_in_dir(folder, elt, fin, search_folder, &list_file);
-		printf(">>> AFTER SEARCH <<< nb_file: %d\n",nb_file);
+		//printf(">>> AFTER SEARCH <<< nb_file: %d\n",nb_file);
 		if(search_folder){
 			for(int i=0; i<nb_file; i++){
-				printf("%s\n",list_file[i]);
+				//printf("%s\n",list_file[i]);
 				char *full_path = malloc(sizeof(char*)*(len_folder+strlen(list_file[i])+1));
 				char **res_tmp;
 				strcpy(full_path,folder);
 				strcat(full_path,list_file[i]);
-				printf("> %s\n",full_path);
+				//printf("> %s\n",full_path);
 				res_tmp = get_elements(full_path);
 				
 				
@@ -560,7 +446,8 @@ char ** get_elements(char *expr){
 					elements[nb_elt] = malloc(sizeof(char)*strlen(res_tmp[cpt])+1);
 					memcpy(elements[nb_elt++], res_tmp[cpt], strlen(res_tmp[cpt])+1);
 					
-					printf(">>>>>>>>>>>>>>>>>%s\n",res_tmp[cpt++]);
+					cpt++;
+					//printf(">>>>>>>>>>>>>>>>>%s\n",res_tmp[cpt++]);
 				}
 				
 				free(res_tmp);
@@ -569,7 +456,7 @@ char ** get_elements(char *expr){
 			}
 		}
 		else{
-			printf("pas folder, que liste \n");
+			//printf("pas folder, que liste \n");
 			int cpt = 0;
 			while(list_file[cpt]){
 				if(nb_elt>=max_elt){
@@ -578,8 +465,8 @@ char ** get_elements(char *expr){
 				}
 				elements[nb_elt] = malloc(sizeof(char)*strlen(list_file[cpt])+1);
 				memcpy(elements[nb_elt++], list_file[cpt], strlen(list_file[cpt])+1);
-				
-				printf(">>>>>>>>>>>>>>>>>%s\n",list_file[cpt++]);
+				cpt++;
+				//printf(">>>>>>>>>>>>>>>>>%s\n",list_file[cpt++]);
 			}
 		}
 		
@@ -594,7 +481,7 @@ char ** get_elements(char *expr){
 		elements[nb_elt]=malloc(sizeof(char)*size);
 		strcpy(elements[nb_elt],folder);
 		strcat(elements[nb_elt],fin);
-		printf("ici: %s\n",elements[nb_elt]);
+		//printf("ici: %s\n",elements[nb_elt]);
 		nb_elt++;
 	}
 	
@@ -623,7 +510,7 @@ int main(int argc, char **argv){
 		int i=0;
 		//printf("result >>> %s\n",result[0]);
 		while(result[i]!=NULL){
-			printf("result >>>> %s\n",result[i++]);
+			printf("result > %s\n",result[i++]);
 		}
 	}
 	
