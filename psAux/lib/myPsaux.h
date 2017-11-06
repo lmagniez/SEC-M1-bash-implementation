@@ -49,10 +49,10 @@ void afficher_tty(char * path);
 
 void afficher_start_time(char * path);
 
-int recup_rss(char * path);
+char * recup_rss(char * path);
 void afficher_rss(char * path);
 
-int recup_vsz(char * path);
+char * recup_vsz(char * path);
 void afficher_vsz(char * path);
 
 int recup_time( int idfichier );

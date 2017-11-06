@@ -1,19 +1,12 @@
 #include "../lib/toolspsAux.h"
 
-char * concat_charactere(char * str , char c){
+void concat_charactere(char * str , char c){
 
-    int len = str == NULL ? 0 : strlen(str);
+    int len = strlen(str);
+    realloc(str,sizeof(char)*(len+1));
 
-    str = str == NULL ? realloc(str,sizeof(char)*2) : str;
-
-    char * newChaine = malloc(sizeof(char)*(len+1));
-
-    strcpy(newChaine,str);
-
-    newChaine[len] = c;
-    newChaine[len+1] = '\0';
-
-    return newChaine;
+    str[len] = c;
+    str[len+1] = '\0';
 }
 
 FILE * myFopen(char * file){
@@ -52,11 +45,13 @@ char * recupPath(char * processus){
 }
 
 char * copy_path(char * path){
-    char * path_cmdline = malloc(sizeof(char)*strlen(path)+1);
+    int len = strlen(path);
+
+    char * path_cmdline = malloc(sizeof(char)*(len+1));
 
     strcpy(path_cmdline,path);
 
-    path[strlen(path)] = '\0';
+    path[len] = '\0';
 
     return path_cmdline;
 }
@@ -71,7 +66,7 @@ void read_file_nbMot(int idfichier,int position){
 
 
 char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
-    char * value = "";
+    char * value = creationChaineVide();
     int nb_mot = 0;
     int parcour_ligne = 0;
 
@@ -88,7 +83,7 @@ char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
             if(nb_mot > nb_mot_max) break;
             if( string_to_read[parcour_ligne] == ' ' &&  string_to_read[parcour_ligne-1] != ' '){nb_mot++;}
             else if(nb_mot >= 1){
-                value = concat_charactere(value,string_to_read[parcour_ligne]);
+                concat_charactere(value,string_to_read[parcour_ligne]);
             }
          parcour_ligne++;
         }
@@ -96,6 +91,7 @@ char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
 
     myFclose(fp);
 
+    free(string_to_read);
     return value;
 }
 
@@ -112,4 +108,10 @@ char * get_ligne(char * path,char * key,char * file){
     myFclose(fp);
 
     return string_to_read;
+}
+
+char * creationChaineVide(){
+    char * str = malloc(sizeof(char));
+    str[0]='\0';
+    return str;
 }

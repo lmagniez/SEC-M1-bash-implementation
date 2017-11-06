@@ -11,7 +11,7 @@
 
 #define PROC "/proc/"
 
-char * concat_charactere(char * str , char c);
+void concat_charactere(char * str , char c);
 
 FILE * myFopen(char * file);
 
@@ -30,3 +30,5 @@ void read_file_nbMot(int idfichier,int position);
 char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file);
 
 char * get_ligne(char * path,char * key,char * file);
+
+char * creationChaineVide();

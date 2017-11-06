@@ -4,36 +4,37 @@
 //************************ COMMANDE *************************
 //***********************************************************
 char * recup_comm(char * path){
-    char * comm = NULL;
+    char * comm = creationChaineVide();
     char c;
 
-    int idfichier = openFile(strcat(path,COMM));
+    path = strcat(path,COMM);
+    int idfichier = openFile(path);
 
-    comm = concat_charactere(comm,'[');
+    concat_charactere(comm,'[');
 
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(c != '\n')
-            comm = concat_charactere(comm,c);
+            concat_charactere(comm,c);
     }
 
-    comm = concat_charactere(comm,']');
-
+    concat_charactere(comm,']');
     return comm;
 }
 
 void afficher_cmdLine(char * path){
     printf("--Cmdline : ");
     int nb_char = 0;
-    char * cmdline = NULL;
     char c;
     
+    char * cmdline = creationChaineVide();
     char * path_cmdline = copy_path(path);
+    path_cmdline = strcat(path_cmdline,CMDLINE);
 
-    int idfichier = openFile(strcat(path_cmdline,CMDLINE));
+    int idfichier = openFile(path_cmdline);
     
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(nb_char < READ_CMD_LINE){
-            cmdline = concat_charactere(cmdline,c);
+            concat_charactere(cmdline,c);
         }
         else
             break;
@@ -43,9 +44,12 @@ void afficher_cmdLine(char * path){
     if(!cmdline){
         cmdline = recup_comm(path);
     }
-  
-    printf("%-15.30s \n",cmdline);
     close(idfichier);
+
+    printf("%-15.30s \n",cmdline);
+
+    free(path_cmdline);
+    free(cmdline);
 }
 
 //***********************************************************
@@ -60,7 +64,6 @@ void afficher_state(char * path){
 
     read_file_nbMot(idfichier,STATE_POSITION);
 
-
     read(idfichier,&c,sizeof(char));
 
     printf("%c\n",c);
@@ -72,9 +75,9 @@ void afficher_state(char * path){
 //************************* USER ****************************
 //***********************************************************
 int recup_uid(char * path){
-    char * uid = NULL;
-    int nb_mot = 0;
-    int parcour_ligne = 0;
+    char * uid = creationChaineVide();
+    int nb_mot = 0, parcour_ligne = 0 , uidValue = 0;
+
     FILE * fp = myFopen(strcat(path,STATUS));
     char * string_to_read = malloc(sizeof(char)*256);
 
@@ -86,22 +89,25 @@ int recup_uid(char * path){
         if(nb_mot >= 2) break;
         if(string_to_read[parcour_ligne] == '\t'){nb_mot++;}
         else if(nb_mot == 1){
-            uid = concat_charactere(uid,string_to_read[parcour_ligne]);
+            concat_charactere(uid,string_to_read[parcour_ligne]);
         }
          parcour_ligne++;
     }
 
+    free(string_to_read);
+
+    uidValue = atoi(uid);
+    free(uid);
     myFclose(fp);
-    return atoi(uid);
+
+    return uidValue;
 }
 
 void afficher_user(char * path){
     printf("--User : ");
  
     struct passwd * pwd;
-
     pwd = getpwuid(recup_uid(path));
-
     if ( pwd != NULL)
         printf(" %-8.8s \n", pwd->pw_name);
 }
@@ -111,7 +117,7 @@ void afficher_user(char * path){
 //***********************************************************
 char * getTTY(char * path){
     char c ;
-    char * tty = "";
+    char * tty = creationChaineVide();
 
     int idfichier = openFile(strcat(path,STAT));
 
@@ -119,16 +125,16 @@ char * getTTY(char * path){
 
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(c == ' ') break;
-        tty = concat_charactere(tty,c);
+        concat_charactere(tty,c);
     }
 
     close(idfichier);
-
     return tty;
 }
 
 char * read_dev_pts(char * tty){
     char * path = malloc(sizeof(char)*strlen(DEV_PTS));
+    char * vide = creationChaineVide();
 
     struct dirent *lecture;
     struct stat * buf_stat =  malloc(sizeof(struct stat));
@@ -141,24 +147,27 @@ char * read_dev_pts(char * tty){
             path = strcat(path,lecture->d_name);
             if(stat(path, buf_stat)==-1){
                 perror("stats");
+                free(tty);
                 free(buf_stat);
                 free(path);
+                exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
+                free(tty);
                 free(buf_stat);
                 return path;
             }
         }  
     }
     closedir(rep);
-
+    free(tty);
     free(buf_stat);
-    free(path);
-    return "";
+    return vide;
 }
 
 char * read_dev(char * tty){
     char * path = malloc(sizeof(char)*strlen(DEV));
+    char * vide = creationChaineVide();
 
     struct dirent *lecture;
     struct stat * buf_stat =  malloc(sizeof(struct stat));
@@ -172,32 +181,45 @@ char * read_dev(char * tty){
 
             if(stat(path, buf_stat)==-1){
                 perror("stats");
+                free(tty);
                 free(buf_stat);
                 free(path);
+                exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
+                free(tty);
                 free(buf_stat);
                 return path;
             }
         }
     }
+
+    free(tty);
+    free(buf_stat);
     closedir(rep);
-    return "";
+    return vide;
 }
 
-char * getNameTty(char * tty){ //mettre dans h
+char * getNameTty(char * tty){
     char * name = read_dev_pts(tty);
-    return !strcmp(name,"") == 0 ? name : read_dev(tty);
+    if(!name[0] == '\0'){
+        return name;
+    }
+    name = read_dev(tty);
+    return name;
 } 
 
 void afficher_tty(char * path){
-     printf("--TTY : ");
+    printf("--TTY : ");
 
-     char * tty = getTTY(path);
+    char * tty = getTTY(path);
 
-     char * name = atoi(tty) == 0 ? "?" : getNameTty(tty)+5;
-
-     printf("%s \n",name);
+    if(atoi(tty) == 0){
+        tty[0] = '?';
+    }else{
+        tty = getNameTty(tty)+5;
+    }
+    printf("%s \n",tty);
 }
 
 //***********************************************************
@@ -205,47 +227,44 @@ void afficher_tty(char * path){
 //***********************************************************
 
 void afficher_start_time(char * path){
-    printf("--Start time : ");
+    printf("--Start time: ");
     
     struct stat buf_stat;
     stat(path, &buf_stat);
 
     time_t time = birthtime(buf_stat);
     struct tm * hours = localtime(&time);
-    printf("%d:%d \n",hours->tm_hour,hours->tm_min);
+    printf("%02d:%02d \n",hours->tm_hour,hours->tm_min);
 }
 
 //***********************************************************
 //************************* RSS *****************************
 //***********************************************************
-int recup_rss(char * path){
+char * recup_rss(char * path){
     char * rss = get_value_by_key(path,"VmRSS",2,STATUS);
-    return strcmp(rss,"")== 0 ? 0 : atoi(rss);
+    return rss;
 }
 
 void afficher_rss(char * path){
     printf("--RSS : ");
- 
-
-    int rss = recup_rss(path);
-    
-    printf("%d \n",rss);
+    char * rss = recup_rss(path);
+    printf("%d \n",atoi(rss));
+    free(rss);
 }
 
 //***********************************************************
 //************************* VSZ *****************************
 //***********************************************************
-int recup_vsz(char * path){
+char * recup_vsz(char * path){
     char * vsz = get_value_by_key(path,"VmSize",2,STATUS);
-    return strcmp(vsz,"")==0 ? 0 : atoi(vsz);
+    return vsz;
 }
 
 void afficher_vsz(char * path){
     printf("--VSZ : ");
- 
-    int vsz = recup_vsz(path);
-    
-    printf("%d \n",vsz);
+    char * vsz = recup_vsz(path);
+    printf("%d \n",atoi(vsz));
+    free(vsz);
 }
 
 //***********************************************************
@@ -253,18 +272,22 @@ void afficher_vsz(char * path){
 //***********************************************************
 int recup_time( int idfichier ){
     char c;
-    char * time = "";
+    char * time = creationChaineVide();
+    int timeValue = 0;
 
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(c == ' ') break;
-        time = concat_charactere(time,c);
+        concat_charactere(time,c);
     }
 
-    return atoi(time);
+    timeValue = atoi(time);
+
+    free(time);
+    return timeValue;
 }
 
 void afficher_time(char * path){
-    printf("--TIME : ");
+    printf("--TIME :");
 
     float utime,stime,cutime,cstime;
 
@@ -276,17 +299,17 @@ void afficher_time(char * path){
     stime = recup_time(idfichier);
     cutime = recup_time(idfichier);
     cstime = recup_time(idfichier);
-
+    
     close(idfichier);
 
     //TO DO VERIF TIME
-    long int time_target = cstime / sysconf(_SC_CLK_TCK) + cutime / sysconf(_SC_CLK_TCK);
+    long int time_target = (cstime*1.0) / sysconf(_SC_CLK_TCK) + (cutime*1.0) / sysconf(_SC_CLK_TCK);
 
     int minute , seconde ;
     minute = time_target / ONE_MINUTE;
     seconde = time_target - (minute * ONE_MINUTE);
 
-    printf("%02d:%02d\n",minute,seconde);
+    printf(" %02d:%02d\n",minute,seconde);
 }
 
 //***********************************************************
@@ -307,9 +330,13 @@ void afficher_memory_pourcentage(char * path){
 
     float pourcentage = ( (atoi(rss) * 1.0) / atoi(memory_total) ) * 100;
 
+
+
     //TO DO : ARRONDI A L'INFERRIEUR
     printf("%3.1f %% \n" , pourcentage);
 
+    free(memory_total);
+    free(rss);
     free(proc);
     free(meminfo);
 }
@@ -325,52 +352,90 @@ int get_cpu_time(){
     strcpy(proc,PROC);
     strcpy(stat,STAT_FILE);
 
-    char * ligne = get_ligne(proc,"cpu",stat);
+    char * ligne = get_ligne(proc,"cpu",stat);    
+    char * value = creationChaineVide();
 
-    printf("%s\n",ligne );
-/*
     while(parcour_ligne < strlen(ligne)){
-        if( nb_mot!=0 && ligne[parcour_ligne] == ' ' &&  ligne[parcour_ligne-1] != ' '){
+        if(ligne[parcour_ligne] == ' '){
             nb_mot++;
-            time += atoi(value);        
-            value = "";
+            time += atoi(value);     
+            free(value);
+            value = creationChaineVide();
         }
-        value = concat_charactere(value,ligne[parcour_ligne]);
+        concat_charactere(value,ligne[parcour_ligne]);
         parcour_ligne++;
-    }*/
+    }
 
+    free(ligne);
     free(proc);
     free(stat);
-
-    return 0;
+    free(value);
+    return time;
 }
-
 
 void afficher_cpu_pourcentage(char * path){
+    printf("--%%CPU : ");
     int time_cpu = get_cpu_time();
+    char * vsz = get_value_by_key(path,"VmSize",2,STATUS);
+    float pourcentage = ( (atoi(vsz) * 1.0) / time_cpu ) * 100;
+
+    printf("%3.1f %% \n" , pourcentage);
+
+    free(vsz);
 }
-
-
 
 //***********************************************************
 //********************** READ PROC  *************************
 //***********************************************************
 void detailsProcessus(char * processusPID){
-    
-    printf("-----------------------------------\n");
     char * processus_path = recupPath(processusPID);
 
-    afficher_user(copy_path(processus_path));
-    afficher_cmdLine(copy_path(processus_path));
-    afficher_state(copy_path(processus_path));
-    afficher_tty(copy_path(processus_path));
-    afficher_start_time(copy_path(processus_path));
-    afficher_rss(copy_path(processus_path));
-    afficher_vsz(copy_path(processus_path));
-    afficher_time(copy_path(processus_path));
-    afficher_memory_pourcentage(copy_path(processus_path));
-    afficher_cpu_pourcentage(copy_path(processus_path));
+    char * copy;
+    
     printf("-----------------------------------\n");
+    copy = copy_path(processus_path);
+    afficher_user(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_cmdLine(copy);
+    free(copy);
+    
+    copy = copy_path(processus_path);
+    afficher_state(copy);
+    free(copy);
+
+    //MANQUE FREE
+    copy = copy_path(processus_path);
+    afficher_tty(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_start_time(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_rss(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_vsz(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_time(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_memory_pourcentage(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_cpu_pourcentage(copy);
+    free(copy);
+    
+    printf("-----------------------------------\n");
+    free(processus_path);
 }
 
 void readProc(){
