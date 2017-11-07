@@ -55,18 +55,33 @@ void afficher_cmdLine(char * path){
 //***********************************************************
 //************************* STATE ***************************
 //***********************************************************
+void pagesLockedMemory(char * path){
+    char * number = get_value_by_key(path,"VmLck",2,STATUS);
+    if( !(number[0] == '\0') && atoi(number) > 0)
+            printf("L");
+    free(number);
+}
+
 void afficher_state(char * path){
     printf("--State : ");
 
     char c;
 
-    int idfichier = openFile(strcat(path,STAT));
+    char * copy = copy_path(path);
+        int idfichier = openFile(strcat(copy,STAT));
+    free(copy);
 
     read_file_nbMot(idfichier,STATE_POSITION);
 
     read(idfichier,&c,sizeof(char));
 
-    printf("%c\n",c);
+    printf("%c",c);
+
+    copy = copy_path(path);
+        pagesLockedMemory(path);
+    free(copy);
+
+    printf("\n");
 
     close(idfichier);
 }
@@ -210,10 +225,11 @@ void afficher_tty(char * path){
         free(tty);
         tty = creationChaineVide();
         concat_charactere(tty,'?');
+        printf("%s\n",tty );
     }else{
         tty = getNameTty(tty);
+        printf("%s \n",tty+5);
     }
-    printf("%s \n",tty+5);
     free(tty);
 }
 
