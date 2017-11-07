@@ -11,6 +11,7 @@
 #define STATUS "/status"
 #define DEV_PTS "/dev/pts/"
 #define DEV "/dev/"
+#define TASK "/task/"
 
 #define MEM_INFO "meminfo"
 #define STAT_FILE "stat"

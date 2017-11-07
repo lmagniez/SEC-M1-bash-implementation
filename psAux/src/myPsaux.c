@@ -62,6 +62,19 @@ void pagesLockedMemory(char * path){
     free(number);
 }
 
+void multi_thread(char * path){
+    int number = 0;
+    struct dirent *lecture;
+    char * directory_path = strcat(path,TASK);
+    DIR *rep = opendir(directory_path);
+    while ((lecture = readdir(rep))) {
+        if(lecture->d_type == DT_DIR && !strstr(lecture->d_name,".")){
+            number++;
+        }
+    }
+    if(number>1)printf("l");
+}
+
 void afficher_state(char * path){
     printf("--State : ");
 
@@ -78,7 +91,11 @@ void afficher_state(char * path){
     printf("%c",c);
 
     copy = copy_path(path);
-        pagesLockedMemory(path);
+        pagesLockedMemory(copy);
+    free(copy);
+
+    copy = copy_path(path);
+        multi_thread(copy);
     free(copy);
 
     printf("\n");

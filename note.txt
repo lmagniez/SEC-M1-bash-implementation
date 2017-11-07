@@ -2,10 +2,6 @@ priority : < -> hight priority in [number]/stat 16 -20 : haute sinon basse
 
 low priority : N ->
 
-mutli-thread : l -> number of direcotry in [number]/task
-
 foreground : + -> number of foreground terminal in [number]/stat
 
 session leader : s -> session leader in [number]/stat 6
-
-pages locked into memory : L -> [number]/status VmLck
