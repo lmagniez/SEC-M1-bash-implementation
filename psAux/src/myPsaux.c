@@ -147,20 +147,17 @@ char * read_dev_pts(char * tty){
             path = strcat(path,lecture->d_name);
             if(stat(path, buf_stat)==-1){
                 perror("stats");
-                free(tty);
                 free(buf_stat);
                 free(path);
                 exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
-                free(tty);
                 free(buf_stat);
                 return path;
             }
         }  
     }
     closedir(rep);
-    free(tty);
     free(buf_stat);
     return vide;
 }
@@ -173,28 +170,23 @@ char * read_dev(char * tty){
     struct stat * buf_stat =  malloc(sizeof(struct stat));
 
     DIR *rep = opendir(DEV);
-
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_CHR && strstr(lecture->d_name,TTY)){
             strcpy(path,DEV); 
             path = strcat(path,lecture->d_name); 
-
             if(stat(path, buf_stat)==-1){
                 perror("stats");
-                free(tty);
                 free(buf_stat);
                 free(path);
                 exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
-                free(tty);
                 free(buf_stat);
                 return path;
             }
         }
     }
 
-    free(tty);
     free(buf_stat);
     closedir(rep);
     return vide;
@@ -206,6 +198,7 @@ char * getNameTty(char * tty){
         return name;
     }
     name = read_dev(tty);
+    free(tty);
     return name;
 } 
 
@@ -213,13 +206,15 @@ void afficher_tty(char * path){
     printf("--TTY : ");
 
     char * tty = getTTY(path);
-
     if(atoi(tty) == 0){
-        tty[0] = '?';
+        free(tty);
+        tty = creationChaineVide();
+        concat_charactere(tty,'?');
     }else{
-        tty = getNameTty(tty)+5;
+        tty = getNameTty(tty);
     }
-    printf("%s \n",tty);
+    printf("%s \n",tty+5);
+    free(tty);
 }
 
 //***********************************************************
@@ -286,28 +281,29 @@ int recup_time( int idfichier ){
     return timeValue;
 }
 
-void afficher_time(char * path){
-    printf("--TIME :");
-
-    float utime,stime,cutime,cstime;
-
+long int recup_full_time(char * path){
     int idfichier = openFile(strcat(path,STAT));
-
+    float utime,stime,cutime,cstime;
     read_file_nbMot(idfichier,TIME_POSITION);
 
     utime = recup_time(idfichier);
     stime = recup_time(idfichier);
     cutime = recup_time(idfichier);
     cstime = recup_time(idfichier);
-    
-    close(idfichier);
 
-    //TO DO VERIF TIME
     long int time_target = (cstime*1.0) / sysconf(_SC_CLK_TCK) + (cutime*1.0) / sysconf(_SC_CLK_TCK);
+    close(idfichier);
+    return time_target;
+}
+
+void afficher_time(char * path){
+    printf("--TIME :");
+
+    long int time = recup_full_time(path);
 
     int minute , seconde ;
-    minute = time_target / ONE_MINUTE;
-    seconde = time_target - (minute * ONE_MINUTE);
+    minute = time / ONE_MINUTE;
+    seconde = time - (minute * ONE_MINUTE);
 
     printf(" %02d:%02d\n",minute,seconde);
 }
@@ -356,7 +352,7 @@ int get_cpu_time(){
     char * value = creationChaineVide();
 
     while(parcour_ligne < strlen(ligne)){
-        if(ligne[parcour_ligne] == ' '){
+        if(ligne[parcour_ligne] == ' ' ){
             nb_mot++;
             time += atoi(value);     
             free(value);
@@ -375,13 +371,11 @@ int get_cpu_time(){
 
 void afficher_cpu_pourcentage(char * path){
     printf("--%%CPU : ");
-    int time_cpu = get_cpu_time();
-    char * vsz = get_value_by_key(path,"VmSize",2,STATUS);
-    float pourcentage = ( (atoi(vsz) * 1.0) / time_cpu ) * 100;
+    float time_cpu = get_cpu_time()*1.0 / sysconf(_SC_CLK_TCK);
+    long int time = recup_full_time(path);
+    float pourcentage = ( time / time_cpu ) * 100;
 
     printf("%3.1f %% \n" , pourcentage);
-
-    free(vsz);
 }
 
 //***********************************************************
