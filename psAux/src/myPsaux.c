@@ -22,7 +22,6 @@ char * recup_comm(char * path){
 }
 
 void afficher_cmdLine(char * path){
-    printf("--Cmdline : ");
     int nb_char = 0;
     char c;
     
@@ -46,7 +45,7 @@ void afficher_cmdLine(char * path){
     }
     close(idfichier);
 
-    printf("%-15.30s \n",cmdline);
+    printf("%-15.15s\t",cmdline);
 
     free(path_cmdline);
     free(cmdline);
@@ -120,8 +119,6 @@ void foreground(char * path,int processus){
 }
 
 void afficher_state(char * path,int processusID){
-    printf("--State : ");
-
     char c;
 
     char * copy = copy_path(path);
@@ -153,7 +150,7 @@ void afficher_state(char * path,int processusID){
         foreground(copy,processusID);
     free(copy);
 
-    printf("\n");
+    printf("\t");
     close(idfichier);
 }
 
@@ -190,12 +187,10 @@ int recup_uid(char * path){
 }
 
 void afficher_user(char * path){
-    printf("--User : ");
- 
     struct passwd * pwd;
     pwd = getpwuid(recup_uid(path));
     if ( pwd != NULL)
-        printf(" %-8.8s \n", pwd->pw_name);
+        printf("%-8.8s", pwd->pw_name);
 }
 
 //***********************************************************
@@ -220,10 +215,10 @@ char * getTTY(char * path){
 
 char * read_dev_pts(char * tty){
     char * path = malloc(sizeof(char)*strlen(DEV_PTS));
+    struct stat * buf_stat =  malloc(sizeof(struct stat));
     char * vide = creationChaineVide();
 
     struct dirent *lecture;
-    struct stat * buf_stat =  malloc(sizeof(struct stat));
 
     DIR *rep = opendir(DEV_PTS);
 
@@ -235,27 +230,30 @@ char * read_dev_pts(char * tty){
                 perror("stats");
                 free(buf_stat);
                 free(path);
+                free(vide);
                 exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
                 free(buf_stat);
+                free(vide);
                 return path;
             }
         }  
     }
     closedir(rep);
     free(buf_stat);
+    free(path);
     return vide;
 }
 
 char * read_dev(char * tty){
-    char * path = malloc(sizeof(char)*strlen(DEV));
     char * vide = creationChaineVide();
-
+    char * path = malloc(sizeof(char)*strlen(DEV));
     struct dirent *lecture;
     struct stat * buf_stat =  malloc(sizeof(struct stat));
 
     DIR *rep = opendir(DEV);
+
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_CHR && strstr(lecture->d_name,TTY)){
             strcpy(path,DEV); 
@@ -264,24 +262,27 @@ char * read_dev(char * tty){
                 perror("stats");
                 free(buf_stat);
                 free(path);
+                free(vide);
                 exit(0);
             }
             if((int)buf_stat->st_rdev == atoi(tty)){
                 free(buf_stat);
+                free(vide);
                 return path;
             }
         }
     }
 
-    free(buf_stat);
     closedir(rep);
+    free(buf_stat);
+    free(path);
     return vide;
 }
 
 char * getNameTty(char * tty){
     char * name = read_dev_pts(tty);
     if(!name[0] == '\0'){
-        return name;
+       return name;
     }
     name = read_dev(tty);
     free(tty);
@@ -289,17 +290,16 @@ char * getNameTty(char * tty){
 } 
 
 void afficher_tty(char * path){
-    printf("--TTY : ");
 
     char * tty = getTTY(path);
     if(atoi(tty) == 0){
         free(tty);
         tty = creationChaineVide();
         concat_charactere(tty,'?');
-        printf("%s\n",tty );
+        printf("%s\t",tty );
     }else{
         tty = getNameTty(tty);
-        printf("%s \n",tty+5);
+        printf("%s\t",tty+5);
     }
     free(tty);
 }
@@ -309,14 +309,12 @@ void afficher_tty(char * path){
 //***********************************************************
 
 void afficher_start_time(char * path){
-    printf("--Start time: ");
-    
     struct stat buf_stat;
     stat(path, &buf_stat);
 
     time_t time = birthtime(buf_stat);
     struct tm * hours = localtime(&time);
-    printf("%02d:%02d \n",hours->tm_hour,hours->tm_min);
+    printf("%02d:%02d\t",hours->tm_hour,hours->tm_min);
 }
 
 //***********************************************************
@@ -328,9 +326,8 @@ char * recup_rss(char * path){
 }
 
 void afficher_rss(char * path){
-    printf("--RSS : ");
-    char * rss = recup_rss(path);
-    printf("%d \n",atoi(rss));
+char * rss = recup_rss(path);
+    printf("%d\t",atoi(rss));
     free(rss);
 }
 
@@ -343,9 +340,8 @@ char * recup_vsz(char * path){
 }
 
 void afficher_vsz(char * path){
-    printf("--VSZ : ");
     char * vsz = recup_vsz(path);
-    printf("%d \n",atoi(vsz));
+    printf("%d\t",atoi(vsz));
     free(vsz);
 }
 
@@ -384,23 +380,19 @@ long int recup_full_time(char * path){
 }
 
 void afficher_time(char * path){
-    printf("--TIME :");
-
     long int time = recup_full_time(path);
 
     int minute , seconde ;
     minute = time / ONE_MINUTE;
     seconde = time - (minute * ONE_MINUTE);
 
-    printf(" %02d:%02d\n",minute,seconde);
+    printf("%02d:%02d\t",minute,seconde);
 }
 
 //***********************************************************
 //****************** MEMORY POURCENTAGE *********************
 //***********************************************************
 void afficher_memory_pourcentage(char * path){
-    printf("--%%MEM : ");
-
     char * proc  = malloc((strlen(PROC)+1)*sizeof(char));
     char * meminfo  = malloc((strlen(MEM_INFO)+1)*sizeof(char));
     
@@ -413,10 +405,8 @@ void afficher_memory_pourcentage(char * path){
 
     float pourcentage = ( (atoi(rss) * 1.0) / atoi(memory_total) ) * 100;
 
-
-
     //TO DO : ARRONDI A L'INFERRIEUR
-    printf("%3.1f %% \n" , pourcentage);
+    printf("%3.1f\t" , pourcentage);
 
     free(memory_total);
     free(rss);
@@ -457,12 +447,11 @@ int get_cpu_time(){
 }
 
 void afficher_cpu_pourcentage(char * path){
-    printf("--%%CPU : ");
     float time_cpu = get_cpu_time()*1.0 / sysconf(_SC_CLK_TCK);
     long int time = recup_full_time(path);
     float pourcentage = ( time / time_cpu ) * 100;
 
-    printf("%3.1f %% \n" , pourcentage);
+    printf("%3.1f\t" , pourcentage);
 }
 
 //***********************************************************
@@ -473,38 +462,14 @@ void detailsProcessus(char * processusID){
 
     char * copy;
     
-    printf("-----------------------------------\n");
     copy = copy_path(processus_path);
     afficher_user(copy);
     free(copy);
 
-    copy = copy_path(processus_path);
-    afficher_cmdLine(copy);
-    free(copy);
+    printf("%s\t",processusID);
     
     copy = copy_path(processus_path);
-    afficher_state(copy,atoi(processusID));
-    free(copy);
-
-    //MANQUE FREE
-    copy = copy_path(processus_path);
-    afficher_tty(copy);
-    free(copy);
-
-    copy = copy_path(processus_path);
-    afficher_start_time(copy);
-    free(copy);
-
-    copy = copy_path(processus_path);
-    afficher_rss(copy);
-    free(copy);
-
-    copy = copy_path(processus_path);
-    afficher_vsz(copy);
-    free(copy);
-
-    copy = copy_path(processus_path);
-    afficher_time(copy);
+    afficher_cpu_pourcentage(copy);
     free(copy);
 
     copy = copy_path(processus_path);
@@ -512,11 +477,35 @@ void detailsProcessus(char * processusID){
     free(copy);
 
     copy = copy_path(processus_path);
-    afficher_cpu_pourcentage(copy);
+    afficher_vsz(copy);
     free(copy);
-    
-    printf("-----------------------------------\n");
+
+    copy = copy_path(processus_path);
+    afficher_rss(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_tty(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_state(copy,atoi(processusID));
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_start_time(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_time(copy);
+    free(copy);
+
+    copy = copy_path(processus_path);
+    afficher_cmdLine(copy);
+    free(copy);
+
     free(processus_path);
+    printf("\n");
 }
 
 void readProc(){
@@ -525,7 +514,6 @@ void readProc(){
     char * ptr;
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_DIR && strtol(lecture->d_name, &ptr, 10)!=0){
-            printf("Numero processus : %s\n", lecture->d_name);
             detailsProcessus(lecture->d_name);
         }
     }
@@ -533,5 +521,6 @@ void readProc(){
 }
 
 void start_psaux(){
+    printf("USER\tPID\t%%CPU\t%%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND\n");
     readProc();
 }
