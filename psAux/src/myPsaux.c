@@ -41,7 +41,7 @@ void afficher_cmdLine(char * path){
         nb_char++;
     }
 
-    if(!cmdline){
+    if(*cmdline == '\0'){
         cmdline = recup_comm(path);
     }
     close(idfichier);
@@ -75,6 +75,28 @@ void multi_thread(char * path){
     if(number>1)printf("l");
 }
 
+void priority(char * path){
+    char c ;
+    char * priority = creationChaineVide();
+
+    int idfichier = openFile(strcat(path,STAT));
+
+    read_file_nbMot(idfichier,PRIORITY_POSITION);
+    while (read(idfichier,&c,sizeof(char)) != 0){ 
+        if(c == ' ') break;
+        concat_charactere(priority,c);
+    }
+
+    close(idfichier);
+
+    if(strstr(priority,"-")){
+        printf("<");
+    }else if (atoi(priority) > 0){
+        printf("N");
+    }
+    free(priority);
+}
+
 void afficher_state(char * path){
     printf("--State : ");
 
@@ -95,11 +117,14 @@ void afficher_state(char * path){
     free(copy);
 
     copy = copy_path(path);
+        priority(copy);
+    free(copy);
+
+    copy = copy_path(path);
         multi_thread(copy);
     free(copy);
 
     printf("\n");
-
     close(idfichier);
 }
 

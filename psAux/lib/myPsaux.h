@@ -24,6 +24,7 @@
 #define TIME_POSITION 11
 #define START_TIME_POSITION 17
 #define READ_CMD_LINE 15
+#define PRIORITY_POSITION 18
 
 #ifdef HAVE_ST_BIRTHTIME
 #define birthtime(x) x.st_birthtime

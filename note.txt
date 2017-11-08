@@ -1,7 +1,3 @@
-priority : < -> hight priority in [number]/stat 16 -20 : haute sinon basse
-
-low priority : N ->
-
 foreground : + -> number of foreground terminal in [number]/stat
 
 session leader : s -> session leader in [number]/stat 6
