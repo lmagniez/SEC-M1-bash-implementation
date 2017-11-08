@@ -55,26 +55,6 @@ void afficher_cmdLine(char * path){
 //***********************************************************
 //************************* STATE ***************************
 //***********************************************************
-void pagesLockedMemory(char * path){
-    char * number = get_value_by_key(path,"VmLck",2,STATUS);
-    if( !(number[0] == '\0') && atoi(number) > 0)
-            printf("L");
-    free(number);
-}
-
-void multi_thread(char * path){
-    int number = 0;
-    struct dirent *lecture;
-    char * directory_path = strcat(path,TASK);
-    DIR *rep = opendir(directory_path);
-    while ((lecture = readdir(rep))) {
-        if(lecture->d_type == DT_DIR && !strstr(lecture->d_name,".")){
-            number++;
-        }
-    }
-    if(number>1)printf("l");
-}
-
 void priority(char * path){
     char c ;
     char * priority = creationChaineVide();
@@ -97,7 +77,49 @@ void priority(char * path){
     free(priority);
 }
 
-void afficher_state(char * path){
+void pagesLockedMemory(char * path){
+    char * number = get_value_by_key(path,"VmLck",2,STATUS);
+    if( !(number[0] == '\0') && atoi(number) > 0)
+            printf("L");
+    free(number);
+}
+
+void sessionsLeader(char * path ,int processus){
+    char * sid = get_value_by_key(path,"NSsid",2,STATUS);
+    if(atoi(sid) == processus)printf("s");
+    free(sid);
+}
+
+void multi_thread(char * path){
+    int number = 0;
+    struct dirent *lecture;
+    char * directory_path = strcat(path,TASK);
+    DIR *rep = opendir(directory_path);
+    while ((lecture = readdir(rep))) {
+        if(lecture->d_type == DT_DIR && !strstr(lecture->d_name,".")){
+            number++;
+        }
+    }
+    if(number>1)printf("l");
+}
+
+void foreground(char * path,int processus){
+    char c ;
+    char * terminal_foreground = creationChaineVide();
+
+    int idfichier = openFile(strcat(path,STAT));
+
+    read_file_nbMot(idfichier,TERMINAL_FOREGROUND_POSITION);
+    while (read(idfichier,&c,sizeof(char)) != 0){ 
+        if(c == ' ') break;
+        concat_charactere(terminal_foreground,c);
+    }
+    close(idfichier);
+    if(atoi(terminal_foreground) == processus)printf("+");
+    free(terminal_foreground);
+}
+
+void afficher_state(char * path,int processusID){
     printf("--State : ");
 
     char c;
@@ -111,17 +133,24 @@ void afficher_state(char * path){
     read(idfichier,&c,sizeof(char));
 
     printf("%c",c);
-
-    copy = copy_path(path);
-        pagesLockedMemory(copy);
-    free(copy);
-
     copy = copy_path(path);
         priority(copy);
     free(copy);
 
     copy = copy_path(path);
+        pagesLockedMemory(copy);
+    free(copy);
+
+    copy = copy_path(path);  
+        sessionsLeader(copy,processusID);
+    free(copy);
+
+    copy = copy_path(path);
         multi_thread(copy);
+    free(copy);
+
+    copy = copy_path(path);
+        foreground(copy,processusID);
     free(copy);
 
     printf("\n");
@@ -439,8 +468,8 @@ void afficher_cpu_pourcentage(char * path){
 //***********************************************************
 //********************** READ PROC  *************************
 //***********************************************************
-void detailsProcessus(char * processusPID){
-    char * processus_path = recupPath(processusPID);
+void detailsProcessus(char * processusID){
+    char * processus_path = recupPath(processusID);
 
     char * copy;
     
@@ -454,7 +483,7 @@ void detailsProcessus(char * processusPID){
     free(copy);
     
     copy = copy_path(processus_path);
-    afficher_state(copy);
+    afficher_state(copy,atoi(processusID));
     free(copy);
 
     //MANQUE FREE

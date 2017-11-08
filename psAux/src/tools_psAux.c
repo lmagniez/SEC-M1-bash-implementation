@@ -80,8 +80,9 @@ char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
     
     if(strstr(string_to_read,key)){
         while(parcour_ligne < strlen(string_to_read)){
+
             if(nb_mot > nb_mot_max) break;
-            if( string_to_read[parcour_ligne] == ' ' &&  string_to_read[parcour_ligne-1] != ' '){nb_mot++;}
+            if( (string_to_read[parcour_ligne] == ' ' &&  string_to_read[parcour_ligne-1] != ' ') || string_to_read[parcour_ligne] == '\t' ){nb_mot++;}
             else if(nb_mot >= 1){
                 concat_charactere(value,string_to_read[parcour_ligne]);
             }

@@ -25,6 +25,8 @@
 #define START_TIME_POSITION 17
 #define READ_CMD_LINE 15
 #define PRIORITY_POSITION 18
+#define SESSIONS_LEADER_POSITION 7
+#define TERMINAL_FOREGROUND_POSITION TTY_POSITION+1
 
 #ifdef HAVE_ST_BIRTHTIME
 #define birthtime(x) x.st_birthtime
@@ -38,11 +40,13 @@
 char * recup_comm(char * path);
 void afficher_cmdLine(char * path);
 
-void afficher_state(char * path);
+void pagesLockedMemory(char * path);
+void multi_thread(char * path);
+void priority(char * path);
+void afficher_state(char * path,int processusID);
 
 int recup_uid(char * path);
 void afficher_user(char * path);
-
 
 char * read_dev_pts(char * tty);
 char * read_dev(char * tty);
