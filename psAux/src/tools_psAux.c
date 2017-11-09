@@ -1,5 +1,13 @@
 #include "../lib/toolspsAux.h"
 
+
+char *errormsg[]={
+	"No error",//0
+	ROUGE("File no exist"),//1
+	ROUGE("Problem with opendir"),//2
+	ROUGE("Problem with stat"),//3
+};
+
 void concat_charactere(char * str , char c){
 
     int len = strlen(str);
@@ -9,12 +17,23 @@ void concat_charactere(char * str , char c){
     str[len+1] = '\0';
 }
 
+DIR * myOpenDir(char * path){
+	DIR *rep = opendir(path);
+	if(rep == NULL){
+		syserror(2);
+	}
+	return rep;
+}
+
+void myCloseDir(DIR * rep){
+	closedir(rep);
+}
+
 FILE * myFopen(char * file){
     FILE * fp = fopen(file,"r");
 
     if(fp == NULL){
-        perror("Le fichier n'existe pas \n");
-        exit(1);
+        syserror(1);
     }
 
     return fp;
@@ -28,7 +47,7 @@ void myFclose(FILE * fp){
 int openFile(char * chemin){
     int idfichier=open(chemin,O_RDONLY);
     if(idfichier == -1){
-        perror("Le fichier n'existe pas \n");
+        syserror(1);
     }
     return idfichier;
 }
@@ -63,7 +82,6 @@ void read_file_nbMot(int idfichier,int position){
         if(c ==' ')nb_mot++;
     }
 }
-
 
 char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
     char * value = creationChaineVide();

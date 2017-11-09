@@ -8,17 +8,28 @@
 #include <fcntl.h>
 
 #include <string.h>
+#include <dirent.h>
+
 
 #define PROC "/proc/"
 
+#define syserror(x) perror(errormsg[x]), exit(x)
+#define ROUGE(m) "\033[01;31m"m"\033[0m"
+#define VERT(m) "\033[01;32m"m"\033[0m"
+#define BLUE(m) "\033[01;34m"m"\033[0m"
+#define CYAN(m) "\033[01;36m"m"\033[0m"
+
+extern char *errormsg[];
+
 void concat_charactere(char * str , char c);
 
-FILE * myFopen(char * file);
+DIR * myOpenDir(char * path);
+void myCloseDir(DIR * rep);
 
+FILE * myFopen(char * file);
 void myFclose(FILE * fp);
 
 int openFile(char * chemin);
-
 void closeFile(int idFile);
 
 char * recupPath(char * processus);

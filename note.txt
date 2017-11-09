@@ -1,3 +1,0 @@
-foreground : + -> number of foreground terminal in [number]/stat
-
-session leader : s -> session leader in [number]/stat 6

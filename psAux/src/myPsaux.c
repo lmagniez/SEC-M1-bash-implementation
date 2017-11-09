@@ -11,13 +11,14 @@ char * recup_comm(char * path){
     int idfichier = openFile(path);
 
     concat_charactere(comm,'[');
-
+    
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(c != '\n')
             concat_charactere(comm,c);
     }
 
     concat_charactere(comm,']');
+    closeFile(idfichier);
     return comm;
 }
 
@@ -43,7 +44,8 @@ void afficher_cmdLine(char * path){
     if(*cmdline == '\0'){
         cmdline = recup_comm(path);
     }
-    close(idfichier);
+
+    closeFile(idfichier);
 
     printf("%-15.15s\t",cmdline);
 
@@ -66,7 +68,7 @@ void priority(char * path){
         concat_charactere(priority,c);
     }
 
-    close(idfichier);
+    closeFile(idfichier);
 
     if(strstr(priority,"-")){
         printf("<");
@@ -93,12 +95,15 @@ void multi_thread(char * path){
     int number = 0;
     struct dirent *lecture;
     char * directory_path = strcat(path,TASK);
-    DIR *rep = opendir(directory_path);
+    DIR *rep = myOpenDir(directory_path);
+    
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_DIR && !strstr(lecture->d_name,".")){
             number++;
         }
     }
+
+    myCloseDir(rep);
     if(number>1)printf("l");
 }
 
@@ -109,11 +114,14 @@ void foreground(char * path,int processus){
     int idfichier = openFile(strcat(path,STAT));
 
     read_file_nbMot(idfichier,TERMINAL_FOREGROUND_POSITION);
+
     while (read(idfichier,&c,sizeof(char)) != 0){ 
         if(c == ' ') break;
         concat_charactere(terminal_foreground,c);
     }
-    close(idfichier);
+
+    closeFile(idfichier);
+
     if(atoi(terminal_foreground) == processus)printf("+");
     free(terminal_foreground);
 }
@@ -151,7 +159,7 @@ void afficher_state(char * path,int processusID){
     free(copy);
 
     printf("\t");
-    close(idfichier);
+    closeFile(idfichier);
 }
 
 //***********************************************************
@@ -180,6 +188,7 @@ int recup_uid(char * path){
     free(string_to_read);
 
     uidValue = atoi(uid);
+    
     free(uid);
     myFclose(fp);
 
@@ -209,7 +218,7 @@ char * getTTY(char * path){
         concat_charactere(tty,c);
     }
 
-    close(idfichier);
+    closeFile(idfichier);
     return tty;
 }
 
@@ -220,7 +229,7 @@ char * read_dev_pts(char * tty){
 
     struct dirent *lecture;
 
-    DIR *rep = opendir(DEV_PTS);
+    DIR *rep = myOpenDir(DEV_PTS);
 
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_CHR){
@@ -240,7 +249,8 @@ char * read_dev_pts(char * tty){
             }
         }  
     }
-    closedir(rep);
+
+    myCloseDir(rep);
     free(buf_stat);
     free(path);
     return vide;
@@ -252,7 +262,7 @@ char * read_dev(char * tty){
     struct dirent *lecture;
     struct stat * buf_stat =  malloc(sizeof(struct stat));
 
-    DIR *rep = opendir(DEV);
+    DIR *rep = myOpenDir(DEV);
 
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_CHR && strstr(lecture->d_name,TTY)){
@@ -273,7 +283,7 @@ char * read_dev(char * tty){
         }
     }
 
-    closedir(rep);
+    myCloseDir(rep);
     free(buf_stat);
     free(path);
     return vide;
@@ -405,7 +415,6 @@ void afficher_memory_pourcentage(char * path){
 
     float pourcentage = ( (atoi(rss) * 1.0) / atoi(memory_total) ) * 100;
 
-    //TO DO : ARRONDI A L'INFERRIEUR
     printf("%3.1f\t" , pourcentage);
 
     free(memory_total);
@@ -510,14 +519,14 @@ void detailsProcessus(char * processusID){
 
 void readProc(){
     struct dirent *lecture;
-    DIR *rep = opendir(PROC);
+    DIR *rep = myOpenDir(PROC);
     char * ptr;
     while ((lecture = readdir(rep))) {
         if(lecture->d_type == DT_DIR && strtol(lecture->d_name, &ptr, 10)!=0){
             detailsProcessus(lecture->d_name);
         }
     }
-    closedir(rep);
+    myCloseDir(rep);
 }
 
 void start_psaux(){
