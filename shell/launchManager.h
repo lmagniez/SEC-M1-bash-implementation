@@ -12,7 +12,6 @@
 #include <signal.h>
 #include <errno.h>
 
-#define CMD_DIR "/usr/bin/"
 #define ARRAY_SIZE_DEFAULT 10
 
 void displayStack(void);

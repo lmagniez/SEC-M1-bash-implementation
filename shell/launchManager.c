@@ -3,6 +3,8 @@ newstack(char*, stack);
 newstack(char*, cmdStack);
 newstack(char*, operatorStack);
 
+extern char **environ;
+
 void addToStack(char *value) {
 	char* valAdd = malloc(sizeof(char)*strlen(value)+1);
 	memcpy(valAdd, value, sizeof(char)*strlen(value)+1);
@@ -53,7 +55,7 @@ void launchCommands(void) {
 		pid_t pid = fork();
 
 		if (pid == 0) {
-			execv(commandArray[0], commandArray);
+			execvpe(commandArray[0], commandArray, environ);
 			perror("Error exec");
 			exit(errno);
 		} else if (pid > 0) {
@@ -96,12 +98,11 @@ void unStack() {
 
 char **getCommandsArray(char* commandLine) {
 	char *test = strtok(commandLine, " ");
-	char *firstValue = malloc(strlen(CMD_DIR) + strlen(test) + 1);
+	char *firstValue = malloc(strlen(test) + 1);
 	char **array = malloc(sizeof(char*) * ARRAY_SIZE_DEFAULT);
 	int index = 1;
 	int arraySize = ARRAY_SIZE_DEFAULT;
-	strcpy(firstValue, CMD_DIR);
-	strcat(firstValue, test);
+	strcpy(firstValue, test);
 	array[0] = firstValue;
 
 	while(test != NULL) {

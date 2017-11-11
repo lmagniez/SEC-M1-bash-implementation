@@ -1,27 +1,39 @@
 #include "../lib/toolspsAux.h"
 
-char * concat_charactere(char * str , char c){
 
-    int len = str == NULL ? 0 : strlen(str);
+char *errormsg[]={
+	"No error",//0
+	ROUGE("File no exist"),//1
+	ROUGE("Problem with opendir"),//2
+	ROUGE("Problem with stat"),//3
+};
 
-    str = str == NULL ? malloc(sizeof(char)*2) : str;
+void concat_charactere(char * str , char c){
 
-    char * newChaine = malloc(sizeof(char)*(len+1));
+    int len = strlen(str);
+    realloc(str,sizeof(char)*(len+1));
 
-    strcpy(newChaine,str);
+    str[len] = c;
+    str[len+1] = '\0';
+}
 
-    newChaine[len] = c;
-    newChaine[len+1] = '\0';
+DIR * myOpenDir(char * path){
+	DIR *rep = opendir(path);
+	if(rep == NULL){
+		syserror(2);
+	}
+	return rep;
+}
 
-    return newChaine;
+void myCloseDir(DIR * rep){
+	closedir(rep);
 }
 
 FILE * myFopen(char * file){
     FILE * fp = fopen(file,"r");
 
     if(fp == NULL){
-        perror("Le fichier n'existe pas \n");
-        exit(1);
+        syserror(1);
     }
 
     return fp;
@@ -35,7 +47,7 @@ void myFclose(FILE * fp){
 int openFile(char * chemin){
     int idfichier=open(chemin,O_RDONLY);
     if(idfichier == -1){
-        perror("Le fichier n'existe pas \n");
+        syserror(1);
     }
     return idfichier;
 }
@@ -52,9 +64,13 @@ char * recupPath(char * processus){
 }
 
 char * copy_path(char * path){
-    char * path_cmdline = malloc(sizeof(char)*strlen(path)+1);
+    int len = strlen(path);
+
+    char * path_cmdline = malloc(sizeof(char)*(len+1));
 
     strcpy(path_cmdline,path);
+
+    path[len] = '\0';
 
     return path_cmdline;
 }
@@ -67,5 +83,54 @@ void read_file_nbMot(int idfichier,int position){
     }
 }
 
+char * get_value_by_key(char * path,char * key,int nb_mot_max,char * file){
+    char * value = creationChaineVide();
+    int nb_mot = 0;
+    int parcour_ligne = 0;
 
+    FILE * fp = myFopen(strcat(path,file));
 
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,key))break;
+    }
+    
+    if(strstr(string_to_read,key)){
+        while(parcour_ligne < strlen(string_to_read)){
+
+            if(nb_mot > nb_mot_max) break;
+            if( (string_to_read[parcour_ligne] == ' ' &&  string_to_read[parcour_ligne-1] != ' ') || string_to_read[parcour_ligne] == '\t' ){nb_mot++;}
+            else if(nb_mot >= 1){
+                concat_charactere(value,string_to_read[parcour_ligne]);
+            }
+         parcour_ligne++;
+        }
+    }
+
+    myFclose(fp);
+
+    free(string_to_read);
+    return value;
+}
+
+char * get_ligne(char * path,char * key,char * file){
+
+    FILE * fp = myFopen(strcat(path,file));
+
+    char * string_to_read = malloc(sizeof(char)*256);
+
+    while(fgets(string_to_read, 256, fp)){
+        if(strstr(string_to_read,key))break;
+    }
+
+    myFclose(fp);
+
+    return string_to_read;
+}
+
+char * creationChaineVide(){
+    char * str = malloc(sizeof(char));
+    str[0]='\0';
+    return str;
+}
