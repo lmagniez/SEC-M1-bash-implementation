@@ -14,6 +14,8 @@
 
 #define ARRAY_SIZE_DEFAULT 10
 
+extern char **environ;
+
 void displayStack(void);
 void addToStack(char*);
 void endInitStack(void);

@@ -3,8 +3,6 @@ newstack(char*, stack);
 newstack(char*, cmdStack);
 newstack(char*, operatorStack);
 
-extern char **environ;
-
 void addToStack(char *value) {
 	char* valAdd = malloc(sizeof(char)*strlen(value)+1);
 	memcpy(valAdd, value, sizeof(char)*strlen(value)+1);
@@ -61,7 +59,7 @@ void launchCommands(void) {
 		} else if (pid > 0) {
 			int status;
 			wait(&status);
-			//destroyCommandsArray(commandArray);
+			destroyCommandsArray(commandArray);
 			if (WIFEXITED(status)) {
 				int returnCode = WEXITSTATUS(status);
 
@@ -130,7 +128,7 @@ char **getCommandsArray(char* commandLine) {
 void destroyCommandsArray(char **commandArray) {
 	char **index = commandArray;
 
-	while (index != NULL) {
+	while (*index != NULL) {
 		free(*index);
 		index++;
 	}
