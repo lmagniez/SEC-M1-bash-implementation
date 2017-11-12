@@ -17,5 +17,5 @@ tools_psAux.o : $(FICHIER_PS)tools_psAux.c
 
 clean:
 	@rm -rf $(BINDIR)*.o
-	@rm -rf ../myPsaux
+	@rm -rf ./myJobs
 	@echo "Cleaning done :)"
