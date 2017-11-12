@@ -46,19 +46,31 @@ void endInitStack(void) {
 
 void launchCommands(void) {
 	while(!empty(cmdStack)) {
-		//char *operator = pop(operatorStack);
+		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
 		char** commandArray = getCommandsArray(cmd);
-
+	
 		pid_t pid = fork();
 
 		if (pid == 0) {
-			execv(commandArray[0], &commandArray[1]);
+			execvpe(commandArray[0], commandArray, environ);
 			perror("Error exec");
 			exit(errno);
 		} else if (pid > 0) {
 			int status;
 			wait(&status);
+			destroyCommandsArray(commandArray);
+			if (WIFEXITED(status)) {
+				int returnCode = WEXITSTATUS(status);
+
+				if (operator != NULL) {
+					if (isAndOperator(operator) && returnCode > 0) {
+						unStack();
+					} else if (isOrOperator(operator) && returnCode == 0) {
+						unStack();
+					}
+				}
+			}
 
 		} else {
 			perror("Error on fork");
@@ -67,15 +79,28 @@ void launchCommands(void) {
 	}
 }
 
+void unStack() {
+	while (!empty(cmdStack)) {
+		free(pop(cmdStack));
+		
+		if (!empty(operatorStack)) {
+			char *operator = pop(operatorStack);
+
+			if(isSeparatorOperator(operator)) {
+				free(operator);
+				break;
+			}
+		}
+	}
+}
+
 char **getCommandsArray(char* commandLine) {
-	printf("ligne de commande : %s", commandLine);
 	char *test = strtok(commandLine, " ");
-	char *firstValue = malloc(strlen(CMD_DIR) + strlen(test) + 1);
+	char *firstValue = malloc(strlen(test) + 1);
 	char **array = malloc(sizeof(char*) * ARRAY_SIZE_DEFAULT);
 	int index = 1;
 	int arraySize = ARRAY_SIZE_DEFAULT;
-	strcpy(firstValue, CMD_DIR);
-	strcat(firstValue, test);
+	strcpy(firstValue, test);
 	array[0] = firstValue;
 
 	while(test != NULL) {
@@ -84,23 +109,31 @@ char **getCommandsArray(char* commandLine) {
 			arraySize*=2;
 			array = realloc(array, sizeof(char*) * arraySize);
 		}
-		array[index] = test;
+
+		if (test != NULL) {
+			char *value = malloc(strlen(test) + 1);
+			strcpy(value, test);
+			array[index] = value;
+		} else {
+			array[index] = NULL;
+		}
 		index++;
-	}
-
-	//display test
-	int i;
-	for (i = 0; i < index; i++) {
-		printf("value : %s", array[i]);
-	}
-
-	if (array[i] == NULL) {
-		printf("NULL");
 	}
 
 	free(commandLine);
 
 	return array;
+}
+
+void destroyCommandsArray(char **commandArray) {
+	char **index = commandArray;
+
+	while (*index != NULL) {
+		free(*index);
+		index++;
+	}
+
+	free(commandArray);
 }
 
 void freeList(){

@@ -128,7 +128,7 @@ void exec_cmd(char **cmd, int in, int at, int err){
 		close(new_tube[1]);
 	}
 	if(old_tube[1]&&at!=old_tube[1]){
-		printf("close pipe2[1] %d \n", old_tube[1]);
+		printf("close old_tube[1] %d \n", old_tube[1]);
 		close(old_tube[1]);
 	}
 	if(piperes[1]&&at!=piperes[1]){
@@ -137,11 +137,11 @@ void exec_cmd(char **cmd, int in, int at, int err){
 	}
 	
 	if(new_tube[0]&&in!=new_tube[0]){
-		printf("close pipe1[0] %d \n", new_tube[0]);
+		printf("close new_tube[0] %d \n", new_tube[0]);
 		close(new_tube[0]);
 	}
 	if(old_tube[0]&&in!=old_tube[0]){
-		printf("close pipe2[0] %d \n", old_tube[0]);
+		printf("close old_tube[0] %d \n", old_tube[0]);
 		close(old_tube[0]);
 	}
 	if(piperes[0]&&in!=piperes[0]){
@@ -192,9 +192,52 @@ int main(int argc, char **argv){
 	argv_cmd4[1] = "-l";
 	argv_cmd4[2] = NULL;
 	
-	int nb_commande;
+	int nb_commande=4;
+	char *** liste = malloc(sizeof(char**)*nb_commande);
+	liste[0]=argv_cmd1;
+	liste[1]=argv_cmd2;
+	liste[2]=argv_cmd3;
+	liste[3]=argv_cmd4;
 	
 	
+	if(pipe(piperes)<0){
+		perror("pipe error");
+		exit(1);
+	}
+	for(int i=0; i<nb_commande; i++){
+		
+		int in=0, at=piperes[1];
+		if(i>0){
+			old_tube[0] = new_tube[0];
+			old_tube[1] = new_tube[1];
+			in = old_tube[0];
+		}
+		if(i!=nb_commande-1){
+			if(pipe(new_tube)<0){
+				perror("pipe error");
+				exit(1);
+			}
+			at = new_tube[1];
+		}
+		
+		
+		pid = fork();
+		if(pid < 0){
+			perror("fork error");
+			exit(1);
+		}
+		if(!pid){
+			exec_cmd(liste[i], in, at, 3);
+			//exec_cmd(argv_cmd3, pipe2[0], pipe1[1], 3);
+		}
+		if(i>0){
+			close(old_tube[0]);
+			close(old_tube[1]);
+		}
+	}
+	
+	
+	/*
 	//my_pipe(argv_cmd1, argv_cmd2);
 	
 	
@@ -273,9 +316,12 @@ int main(int argc, char **argv){
 	}
 	close(old_tube[0]);
 	close(old_tube[1]);
+	*/
 	
 	
-	/* father: close the unused descriptors */
+	//////////////////////////////////////////
+	// father: close the unused descriptors //
+	//////////////////////////////////////////
 	close(new_tube[0]);
 	close(new_tube[1]);
 	

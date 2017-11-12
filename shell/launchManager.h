@@ -12,8 +12,9 @@
 #include <signal.h>
 #include <errno.h>
 
-#define CMD_DIR "/bin/"
 #define ARRAY_SIZE_DEFAULT 10
+
+extern char **environ;
 
 void displayStack(void);
 void addToStack(char*);
@@ -21,6 +22,8 @@ void endInitStack(void);
 void launchCommands(void);
 void displayListCommand(void);
 char **getCommandsArray(char*);
+void destroyCommandsArray(char**);
+void unStack(void);
 
 //handler
 void change_sigint(void);
