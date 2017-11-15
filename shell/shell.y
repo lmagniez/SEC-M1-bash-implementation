@@ -36,7 +36,7 @@ Input:
 
 Line:
 	END
-	|Command END { /*displayListCommand(*/endInitStack()/*)*/, printf("\n> ");}
+	|Command END { /*displayListCommand(*/endInitStack()/*)*/, printf("> ");}
 	;
 
 Command:

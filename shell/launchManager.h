@@ -3,6 +3,8 @@
 #include "stack.h"
 #include "launchManager.h"
 #include "operator.h"
+#include "./pipe/mypipe.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

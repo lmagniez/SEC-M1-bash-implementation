@@ -1,7 +1,9 @@
 #include "launchManager.h"
+
 newstack(char*, stack);
 newstack(char*, cmdStack);
 newstack(char*, operatorStack);
+
 
 void addToStack(char *value) {
 	char* valAdd = malloc(sizeof(char)*strlen(value)+1);
@@ -49,21 +51,32 @@ void launchCommands(void) {
 		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
 		char** commandArray = getCommandsArray(cmd);
-	
+		
+		prepare_pipe(operator);
+		
 		pid_t pid = fork();
 
 		if (pid == 0) {
+			
+			traitement_pipe_fils();
+			
 			execvpe(commandArray[0], commandArray, environ);
 			perror("Error exec");
 			exit(errno);
 		} else if (pid > 0) {
+			
+			traitement_pipe_pere();
+			
 			int status;
 			wait(&status);
 			destroyCommandsArray(commandArray);
+			
+			
 			if (WIFEXITED(status)) {
 				int returnCode = WEXITSTATUS(status);
 
 				if (operator != NULL) {
+					
 					if (isAndOperator(operator) && returnCode > 0) {
 						unStack();
 					} else if (isOrOperator(operator) && returnCode == 0) {
