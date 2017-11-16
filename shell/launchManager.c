@@ -74,7 +74,6 @@ void launchCommands(void) {
 					}
 				}
 				i++;
-				
 			}
 		}
 		prepare_pipe(operator);
