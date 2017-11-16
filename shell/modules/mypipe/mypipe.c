@@ -1,5 +1,5 @@
 #include "mypipe.h"
-#include "../operator.h"
+#include "../../operator.h"
 
 int begin = 0;
 int end = 0;

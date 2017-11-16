@@ -46,14 +46,38 @@ void endInitStack(void) {
 	launchCommands();
 }
 
+
 void launchCommands(void) {
 	while(!empty(cmdStack)) {
 		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
 		char** commandArray = getCommandsArray(cmd);
 		
-		prepare_pipe(operator);
+		int i=1;
 		
+		//detect the * and replace with the corresponding elements 
+		if(commandArray!=NULL){
+			while(commandArray[i]){
+				if(strchr(commandArray[i],'*')){
+					char ** res = get_elements(commandArray[i]);
+					/*
+					int cpt=0;
+					while(res[cpt]!=NULL){
+						printf("elt: %s \n",res[cpt++]);
+					}
+					*/
+					
+					if(*res!=NULL){
+						char **new_cmd = replace_cmdarray(commandArray, i, res);
+						destroyCommandsArray(commandArray);
+						commandArray = new_cmd;
+					}
+				}
+				i++;
+				
+			}
+		}
+		prepare_pipe(operator);
 		pid_t pid = fork();
 
 		if (pid == 0) {
@@ -63,6 +87,7 @@ void launchCommands(void) {
 			execvpe(commandArray[0], commandArray, environ);
 			perror("Error exec");
 			exit(errno);
+			
 		} else if (pid > 0) {
 			
 			traitement_pipe_pere();

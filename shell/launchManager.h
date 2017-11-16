@@ -3,7 +3,8 @@
 #include "stack.h"
 #include "launchManager.h"
 #include "operator.h"
-#include "./pipe/mypipe.h"
+#include "./modules/mypipe/mypipe.h"
+#include "./modules/myjoker/myjoker.h"
 
 #include <stdio.h>
 #include <stdlib.h>
