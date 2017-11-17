@@ -9,7 +9,7 @@
 	return EXIT;
 }
 
-([a-zA-Z"'\\/0-9.\*]*[\ -]*)* {
+([a-zA-Z"'\\/0-9.\*\?\[\]]*[\ -]*)* {
 	yylval=yytext;
 	return (CMD);
 }

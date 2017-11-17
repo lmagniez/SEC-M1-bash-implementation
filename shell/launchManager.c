@@ -58,7 +58,7 @@ void launchCommands(void) {
 		//detect the * and replace with the corresponding elements 
 		if(commandArray!=NULL){
 			while(commandArray[i]){
-				if(strchr(commandArray[i],'*')){
+				if(strchr(commandArray[i],'*')||strchr(commandArray[i],'?')||strchr(commandArray[i],'[')){
 					char ** res = get_elements(commandArray[i]);
 					/*
 					int cpt=0;
