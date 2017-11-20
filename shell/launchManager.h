@@ -3,6 +3,9 @@
 #include "stack.h"
 #include "launchManager.h"
 #include "operator.h"
+#include "./modules/mypipe/mypipe.h"
+#include "./modules/myjoker/myjoker.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
