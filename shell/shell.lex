@@ -5,6 +5,14 @@
 %}
 
 %%
+"myJobs" {
+	return(MY_JOBS);
+}
+
+"myLs" {
+	return(MY_LS);
+}
+
 [ ]*"exit"[ ]* {
 	return EXIT;
 }
@@ -31,6 +39,14 @@
 
 "\n" {
 	return(END);
+}
+
+">" {
+	return(FLUX_WRITE);
+}
+
+"<" {
+	return(FLUX_READ);
 }
 
 %%
