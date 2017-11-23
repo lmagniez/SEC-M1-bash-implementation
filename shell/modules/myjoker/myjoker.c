@@ -147,12 +147,14 @@ int elt_belong_to_expr(char *expr, char *elt){
 	int crs_substring_fin = 0;
 	int oldpos = 0;
 	int found_star = 0;
+	int last_is_star = 0;
 	
 	//expr
 	char *substring;
 	//elt
 	char *newpos;
 	int last_substring = 0;
+	
 	
 	int len_expr = strlen(expr);
 	int len_elt = strlen(elt);
@@ -184,6 +186,8 @@ int elt_belong_to_expr(char *expr, char *elt){
 	
 	//for each *, get the next substring and check if it belongs to elt
 	while(crs_expr<len_expr&&crs_elt<len_elt){
+		last_is_star = 0;
+		//printf("again?\n");
 		found_star = 0;
 		//skip the multiple stars
 		if(expr[crs_expr]=='*')
@@ -194,6 +198,7 @@ int elt_belong_to_expr(char *expr, char *elt){
 			if(expr[crs_expr]=='*')
 				found_star = 1;
 		}
+		
 		crs_substring_deb = crs_expr;
 		
 		//last char is star -> accept
@@ -210,8 +215,10 @@ int elt_belong_to_expr(char *expr, char *elt){
 		
 		//* case
 		if(expr[crs_expr]!='?'&&expr[crs_expr]!='['){
+			last_is_star = 1;
+			//printf("agagain\n");
 			//search for the end of the string (? or *)
-			while(expr[crs_expr]!='\0'&&expr[crs_expr]!='*'&&expr[crs_expr]!='?')
+			while(expr[crs_expr]!='\0'&&expr[crs_expr]!='*'&&expr[crs_expr]!='?'&&expr[crs_expr]!='[')
 				crs_expr++;
 			crs_substring_fin = crs_expr;
 		
@@ -220,6 +227,7 @@ int elt_belong_to_expr(char *expr, char *elt){
 			substring = malloc(sizeof(char)*(len_substring+1));
 			memcpy(substring,expr+crs_substring_deb,sizeof(char)*(len_substring));
 			substring[len_substring]='\0';
+			//printf("my substring %s\n",substring);
 		
 			//check if last substring
 			if(expr[crs_expr]=='\0'){
@@ -244,45 +252,67 @@ int elt_belong_to_expr(char *expr, char *elt){
 			//printf("? ? ? !!\n");
 			crs_expr++;
 			crs_elt++;
-			if(expr[crs_expr]=='\0'){
+			if(elt[crs_elt]=='\0'&&expr[crs_expr]=='\0'){
+				//printf("here?\n");
 				return 1;
 			}
 		}
 		if(expr[crs_expr]=='['){
 			//printf("[ ] !!\n");
+			int etoile = 0;
 			crs_substring_deb = crs_expr;
 			crs_substring_fin = crs_expr;
 			
 			len_substring = 0;
 			while(expr[crs_substring_fin]!='\0'&&expr[crs_substring_fin]!=']'){
 				crs_substring_fin++;
-			}
+			}		
 			if(expr[crs_substring_fin]=='\0')
 				return 0;
+			if(expr[crs_substring_fin+1]=='*'){
+				//printf("[ ]* !!\n");
+				etoile = 1;
+			}
 			crs_substring_fin++;
 			len_substring = crs_substring_fin - crs_substring_deb - 2;
 			substring = malloc(sizeof(char)*len_substring+1);
 			memcpy(substring,expr+crs_substring_deb + 1,sizeof(char)*(len_substring));
 			substring[len_substring]='\0';
 			
-			//printf("substring ->>> %s \n",substring);
+			//printf("substring ->>> %s len_substring : %d \n",substring, len_substring);
 			char * str = get_str_from_expr(substring);
 			
 			//printf("on compare str %s avec c %c\n",str,elt[crs_elt]); 
-			//printf("crs expr %c \n",expr[crs_expr]); 
+			//printf("crs expr %c\n",expr[crs_expr]); 
+			
+			
 			
 			
 			if (!strchr (str, elt[crs_elt])){
 				free(str);
 				return 0;
 			}
-			free(str);
 			
+			
+			
+			//ls c[a-z]m[a-z]il.sh
+			//ls com[a-z]il.sh
+			//ls compi[a-z].sh
+			//ls compil.[a-z]h
 			crs_expr+=len_substring +2;
-			//printf("crs expr après %c (%s) \n",expr[crs_expr], expr); 
-			
-			
 			crs_elt++;
+			
+			//[a-z]*
+			if(etoile){
+				crs_expr++;//skip the star
+				while(elt[crs_elt]!='\0'&&strchr(str, elt[crs_elt])){
+					crs_elt++;
+				}
+			}
+			free(str);
+			//printf("expr now -> %s \n",expr+crs_expr);
+			//printf("elt now -> %s \n",elt+crs_elt);
+			
 			if(expr[crs_expr]=='\0'){
 				return 1;
 			}
@@ -292,16 +322,25 @@ int elt_belong_to_expr(char *expr, char *elt){
 	}
 	
 	if(*substring){
-		//printf("last substring!! %s\n",substring);
+		//printf("last substring!! %s cmp %s\n",substring, elt+crs_elt);
 		char *res = elt+crs_elt;
-		while(res){
+		//while(res){
 			//printf(">> %s\n",elt+crs_elt);
 			res=strstr(elt+crs_elt,substring);
+			if(!last_is_star){
+				if(res!=NULL){
+					if(strcmp(res,elt+crs_elt)!=0){
+						return 0;
+					}
+				}
+				else return 0;
+			}
+			
 			//printf("add: %d\n", (res-(elt+crs_elt)));
 			if(res)crs_elt = crs_elt + (res-(elt+crs_elt)) + len_substring;
 			//printf("res! %d len : %d \n", crs_elt, len_substring);
 			//return 0;
-		}
+		//}
 	}
 	if(*substring){
 		free(substring);
@@ -650,7 +689,7 @@ char *get_str_from_interval(char a, char b){
 	}
 	res[cpt]='\0';
 	
-	printf("res > %s\n",res);
+	//printf("res > %s\n",res);
 	
 	return res;
 }
@@ -664,6 +703,7 @@ char* get_str_from_expr(char *expr){
 	int cpt = 0;
 	int added = 0;
 	
+	res[0] = '\0';
 	for(int i=0; i<len; i++){
 		added = 0;
 		//printf("%c \n", expr[i]);
