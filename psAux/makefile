@@ -9,9 +9,6 @@ CFLAGS=-Wall -g
 myPsaux : $(OBJET)
 	@$(CC) -o $(EXEC)myPsaux  $(BINDIR)*.o
 
-$(MYLS)myls.o: $(MYLS)myls.c
-	@$(CC) $(CFLAGS) -c  -o $@ $(MYLS)myls.c
-
 $(BINDIR)main_ps_aux.o: $(SRCDIR)*.c
 	@$(CC) $(CFLAGS) -c  -o $@ $(SRCDIR)main_ps_aux.c
 

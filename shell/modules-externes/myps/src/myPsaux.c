@@ -383,7 +383,9 @@ long int recup_full_time(char * path){
     stime = recup_time(idfichier);
     cutime = recup_time(idfichier);
     cstime = recup_time(idfichier);
-
+    
+    (void) utime;(void) stime;
+	
     long int time_target = (cstime*1.0) / sysconf(_SC_CLK_TCK) + (cutime*1.0) / sysconf(_SC_CLK_TCK);
     close(idfichier);
     return time_target;
