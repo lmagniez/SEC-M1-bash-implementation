@@ -1,5 +1,5 @@
-MYLS=myls/
-PSAUX=psAux/ 
+MYLS=shell/modules-externes/myls/
+PSAUX=shell/modules-externes/myps/
 
 all:
 	@(cd $(MYLS) && $(MAKE))

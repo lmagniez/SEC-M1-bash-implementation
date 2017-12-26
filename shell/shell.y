@@ -2,6 +2,8 @@
 #include "global.h"
 #include "launchManager.h"
 #include "operator.h"
+#include "./modules/myjobs/myjobs.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +29,7 @@ extern int YYLESS(int n);
 %left AND OR
 %left PIPE SEPARATOR BACKGROUND
 %left FLUX_READ FLUX_WRITE
-%left MY_JOBS MY_LS
+%left MY_JOBS MY_LS MY_PS
 
 %start Input
 %%
@@ -44,8 +46,6 @@ Line:
 Command:
 	CMD {addToStack($1);}
 	|MY_JOBS {printf("Je suis la commande my_jobs");}
-	|MY_LS {printf("Je suis la commande my_ls");}
-	|MY_PS {printf("Je suis la commande my_ps");}
 	|Command AND Command {addToStack(OP_AND);}
 	|Command OR Command {addToStack(OP_OR);}
 	|Command PIPE Command {addToStack(OP_PIPE);}
@@ -64,9 +64,16 @@ int yyerror(char *s) {
 
 
 int main(void) {
-	signal(SIGINT, SIG_IGN);
-	printf("> ");
-	fflush(stdout);
-	yyparse();
+	//signal(SIGINT, SIG_IGN);
+	//signal(SIGTSTP, SIG_IGN);
+	
+	init_list_jobs();
+	
+	
+	while(1){
+		printf("> ");
+		fflush(stdout);
+		yyparse();
+	}
 	
 }

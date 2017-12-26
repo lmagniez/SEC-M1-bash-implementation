@@ -13,6 +13,10 @@
 	return(MY_LS);
 }
 
+"myPs" {
+	return(MY_PS);
+}
+
 [ ]*"exit"[ ]* {
 	return EXIT;
 }

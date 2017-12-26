@@ -9,8 +9,6 @@ int pid_fils;
 
 void handler_sigint(int arg){
 	
-	
-	
 	char res = ' ';
 	char *buf = malloc(sizeof(char)*30);
 	printf("\n\nDo you really wish to quit ?\n yes=y\n no=n\n");
@@ -61,7 +59,8 @@ void handler_sigint(int arg){
 
 
 int main(){
-
+	
+	printf("coucou\n");
 	int pid;
 	pid = fork();
 	if(pid<0){
@@ -75,6 +74,8 @@ int main(){
 	if(pid>0){
 		pid_fils = pid; 
 		signal(SIGINT, handler_sigint);
+		signal(SIGTSTP, SIG_IGN);
+		setpgid(0, 0);
 		
 		int ret=-1;
 		while(ret!=0&&ret!=9){
