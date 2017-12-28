@@ -26,12 +26,11 @@ typedef enum v_etat{
 }value_etat;
 
 int nombrePhilosophe;
-
-sem_t all_a_table; 
 sem_t mutex; // exclusion mutuelle
 sem_t * philosophe; //semaphore par philosophe
 value_etat * etat; //etat par philosophe
 pthread_t * philosopheThreadTab; //thread par philosophe
+
 
 // --------------------------------
 // ------------ TOOL --------------
@@ -52,12 +51,25 @@ void init(int numPhilosophe){
   philosopheThreadTab = malloc(sizeof(pthread_t)*numPhilosophe); 
 
   for (int i=0;i<numPhilosophe;i++){
-    sem_init(&philosophe[i], 0, 1);
+    sem_init(&(philosophe[i]), 0, 1);
     etat[i] = PENSE;
   }
 
   sem_init(&mutex, 0, 1);
-  sem_init(&all_a_table,0,0);
+
+}
+
+//---------------------------------
+//----------- DESTROY -------------
+//---------------------------------
+void destroy(){
+  sem_destroy(&mutex);
+  for(int i = 0 ; i < nombrePhilosophe;i++){
+    sem_destroy(&(philosophe[i]));
+  }
+  free(philosophe);
+  free(etat);
+  free(philosopheThreadTab);
 }
 
 // --------------------------------
@@ -171,10 +183,8 @@ int droite(int num){
 // --------------------------------
 void testBaguettes(int num){
   if((etat[num] == AFAIM ) && (etat[gauche(num)] != MANGE ) && (etat[droite(num)] != MANGE )){
-      
       etat[num] = MANGE;
       manger(num);
-      
       V(&(philosophe[num]));
    } 
 }
@@ -210,14 +220,9 @@ void * action_philosophe(void * arg){
 
   etat[number] = PENSE;
   arriver(number);
-
-  sem_wait(&all_a_table);
-  sem_post(&all_a_table);
-
+  
   for(int i = 0 ; i < nb_tour ; i++){
-
     prendre_baguettes(number);
-
     poser_baguettes(number);
   }
 
@@ -251,12 +256,13 @@ int main(int argc, char* argv[]){
         }
     }
 
-    sem_post(&all_a_table);
-
     for (int i = 0; i < numPhilosophe; i++){
         if (pthread_join(philosopheThreadTab[i], NULL) != 0){
            couleurRouge("pthread_join()");
         }
     }
+
+    destroy();
+
     return 0;
 }	
