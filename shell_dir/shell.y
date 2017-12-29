@@ -62,6 +62,20 @@ Command:
 	|Command FLUX_WRITE_BOTH Command {addToStack(OP_FLUX_WRITE_BOTH);}
 	|Command FLUX_WRITE_BOTH_DOUBLE Command {addToStack(OP_FLUX_WRITE_BOTH_DOUBLE);}
 	|Command FLUX_READ Command {addToStack(OP_FLUX_READ);}
+	
+	|Command AND {printf("error syntax\n");}
+	|Command OR {printf("error syntax\n");}
+	|Command PIPE {printf("error syntax\n");}
+	|Command SEPARATOR {printf("error syntax\n");}
+	|Command FLUX_WRITE_OUT {printf("error syntax\n");}
+	|Command FLUX_WRITE_OUT_DOUBLE {printf("error syntax\n");}
+	|Command FLUX_WRITE_ERR {printf("error syntax\n");}
+	|Command FLUX_WRITE_ERR_DOUBLE {printf("error syntax\n");}
+	|Command FLUX_WRITE_BOTH {printf("error syntax\n");}
+	|Command FLUX_WRITE_BOTH_DOUBLE {printf("error syntax\n");}
+	|Command FLUX_READ {printf("error syntax\n");}
+	
+	
 	|EXIT {addToStack(OP_EXIT);}
 	;
 %%
