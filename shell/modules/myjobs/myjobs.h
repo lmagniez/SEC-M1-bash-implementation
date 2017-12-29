@@ -2,11 +2,16 @@
 #define MYJOBS
 
 #define MAX_JOBS 30
+#define MAX_JOB_CHAR 50
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 
 void init_list_jobs();
 void ajout_job(int pid, char *cmd, int is_running);

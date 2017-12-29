@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
 
 int yylex();
 int yyerror(char*);
@@ -62,6 +63,40 @@ int yyerror(char *s) {
 	return 1;
 }
 
+void handler_sigint(int arg){
+	
+	char res = ' ';
+	char *buf = malloc(sizeof(char)*30);
+	printf("\n\nDo you really wish to quit ?\n yes=y\n no=n\n");
+	signal(SIGINT, SIG_IGN);
+	signal(SIGCHLD, SIG_IGN);
+	
+	scanf(" %s",buf);
+	res=buf[0];
+	free(buf);
+	
+	switch(res){
+		case 'y':
+			exit(1);
+			return;
+			
+		break;
+		case 'n':
+			printf("> ");
+			fflush(stdout);
+			signal(SIGINT, handler_sigint);
+			return;
+		break;
+		default:
+			signal(SIGINT, handler_sigint);
+			return;
+		break;
+	} 
+	
+	return;
+	
+}
+
 
 int main(void) {
 	//signal(SIGINT, SIG_IGN);
@@ -70,10 +105,13 @@ int main(void) {
 	init_list_jobs();
 	
 	
-	while(1){
+	/*while(1){
 		printf("> ");
 		fflush(stdout);
 		yyparse();
-	}
+	}*/
+	signal(SIGINT, handler_sigint);
+	printf("> ");
+	yyparse();
 	
 }

@@ -14,30 +14,34 @@ int stop_happened = 0;
 
 static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
 {
-	
-	printf("handler sigchld\n");
+	//printf("handler sigchld\n");
 	int status = siginfo->si_status;
 	int pid = siginfo->si_pid;
 	int id_job = get_id_job(pid);
-	
-	afficher_job();
+	//printf("id_job : %d \n",id_job);
+	if(id_job == -1){
+		//printf("connait pas\n");
+		return;
+	}
+	//afficher_job();
 		
 	if (WIFEXITED(status)) {
 		int returnCode = WEXITSTATUS(status);
-		int isfg;
+		int isfg ;
 		if(id_job!=-1){
 			isfg = is_fg(id_job);
 			remove_job(id_job);
 		}
-		printf("fg: %d\n", isfg);
-		if(!isfg){
+		//printf("fg: %d\n", isfg);
+		if(isfg==0){
 			printf ("Le processus [%ld] s'est bien terminé (code: %d)\n",
 			(long)siginfo->si_pid, returnCode);
 		}
 		
 	}
+	//ended by signal
 	else if(WIFSIGNALED(status)){
-		printf(" by signal %d\n", WTERMSIG(status));
+		//printf(" by signal %d\n", WTERMSIG(status));
 		if(WTERMSIG(status) == 20){
 			set_fg(id_job, 2);
 		}
@@ -47,7 +51,7 @@ static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
 				isfg = is_fg(id_job);
 				remove_job(id_job);
 			}
-			if(!isfg){
+			if(isfg==0){
 				printf ("Le processus [%ld] s'est terminé (code: %d)\n",
 				(long)siginfo->si_pid, status);
 			}
@@ -59,7 +63,12 @@ static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
 		printf("stopped by signal %d\n", WSTOPSIG(status));
 	}
 	
-	
+}
+
+
+static void handler_sigterm_son (int sig, siginfo_t *siginfo, void *context){
+	//printf("son has ended! \n");
+	exit(0);
 }
 
 void launch_sigaction_pere(){	
@@ -71,7 +80,17 @@ void launch_sigaction_pere(){
 		perror ("sigaction");
 		return;
 	}
+}
 
+void launch_sigaction_fils(){	
+	struct sigaction act;
+	memset (&act, '\0', sizeof(act));
+	act.sa_sigaction = &handler_sigterm_son;
+	act.sa_flags = SA_SIGINFO;			 
+	if (sigaction(SIGCHLD, &act, NULL) < 0) {
+		perror ("sigaction");
+		return;
+	}
 }
 
 void addToStack(char *value) {
@@ -148,63 +167,72 @@ void launchCommands(void) {
 
 		//son pid: exec the command
 		if (pid == 0) {
-			
-			if(operator != NULL){
-				if(isBackgroundOperator(operator)){
-					
-				}
-			}
-			
-			traitement_pipe_fils();
-			
-			//>>>>>>>>>>MYFG
-			if(strcmp(MYFG,commandArray[0])==0){
+			signal(SIGINT, SIG_IGN);
+			pid_t pid2 = fork();
+			if(pid2 > 0){
 				
-				int pid_fg;
-				if(commandArray[1] == NULL){
-					exit(1);
+				exit(0);
+				/*launch_sigaction_fils();
+				wait(NULL);
+				*/
+			}
+			if(pid2 == 0){
+			
+				if(operator != NULL){
+					if(isBackgroundOperator(operator)){
+						
+					}
 				}
-				else{
-					int id_job = atoi(commandArray[1]);
-					if(!has_id(id_job)){
-						printf("existe pas\n");
+				
+				traitement_pipe_fils();
+				
+				if(strcmp(MYFG,commandArray[0])==0){
+					
+					int pid_fg;
+					if(commandArray[1] == NULL){
 						exit(1);
 					}
 					else{
-						pid_fg = get_pid_from_id_job(id_job);
-						kill(pid_fg, SIGCONT);
+						int id_job = atoi(commandArray[1]);
+						//doesn't exists
+						if(!has_id(id_job)){
+							exit(1);
+						}
+						else{
+							pid_fg = get_pid_from_id_job(id_job);
+							kill(pid_fg, SIGCONT);
+						}
+						int status;
+						//waitpid(pid_fg, &status, WUNTRACED);
+						exit(0);
 					}
-					int status;
-					//waitpid(pid_fg, &status, WUNTRACED);
+					
 					exit(0);
 				}
-				
-				exit(0);
+				else if(strcmp(MYJOB,commandArray[0])==0){
+					afficher_job();
+					exit(0);
+				}
+				else if(strcmp(MYLS,commandArray[0])==0){
+					execvpe(MYLS_PATH, commandArray, environ);
+				}
+				else if(strcmp(MYPS,commandArray[0])==0){
+					execvpe(MYPS_PATH, commandArray, environ);
+				}
+				else if(strcmp(MYCD,commandArray[0])==0){
+					//done in the father
+					exit(0);
+				}
+				else{
+					execvpe(commandArray[0], commandArray, environ);
+				}
+				perror("Error exec");
+				exit(errno);
 			}
-			else if(strcmp(MYJOB,commandArray[0])==0){
-				afficher_job();
-				exit(0);
-			}
-			else if(strcmp(MYLS,commandArray[0])==0){
-				execvpe(MYLS_PATH, commandArray, environ);
-			}
-			else if(strcmp(MYPS,commandArray[0])==0){
-				execvpe(MYPS_PATH, commandArray, environ);
-			}
-			else if(strcmp(MYCD,commandArray[0])==0){
-				//done in the father
-				exit(0);
-			}
-			else{
-				execvpe(commandArray[0], commandArray, environ);
-			}
-			perror("Error exec");
-			exit(errno);
 		
 		} 
 		//father pid: wait for the son
 		else if (pid > 0) {
-			
 			signal(SIGTSTP, SIG_IGN);
 			pid_fils = pid;
 			
@@ -212,7 +240,7 @@ void launchCommands(void) {
 			int status;
 			
 			//launch all the signal
-			//>>>launch_sigaction_pere();
+			launch_sigaction_pere();
 			traitement_pipe_pere();
 			
 			if(strcmp(MYCD,commandArray[0])==0){
@@ -260,11 +288,17 @@ void launchCommands(void) {
 				
 			}
 			signal(SIGTSTP, SIG_DFL);
+			//afficher_job();
 
 		} else {
 			perror("Error on fork");
 			exit(errno);
 		}
+		//sleep(1);
+		usleep(100*1000);
+		//printf("end pere\n");
+		//signal(SIGINT, handler_sigint);
+		
 	}
 }
 
