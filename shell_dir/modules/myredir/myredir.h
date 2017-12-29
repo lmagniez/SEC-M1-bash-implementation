@@ -18,4 +18,13 @@ void prepare_pipe(char *operator);
 void traitement_pipe_fils();
 void traitement_pipe_pere();
 
+void my_redir_stdout(char *file);
+void my_redir_stdout_double(char *file);
+void my_redir_stderr(char *file);
+void my_redir_stderr_double(char *file);
+void my_redir_stderr_stdout(char *file);
+void my_redir_stderr_stdout_double(char *file);
+
+
+
 #endif

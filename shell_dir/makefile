@@ -1,6 +1,6 @@
 EXEC=../
 
-OBJET=shell.lex.o y.tab.o ./modules/mypipe/mypipe.o ./modules/myjoker/myjoker.o ./modules/myjobs/myjobs.o ./modules/mycd/mycd.o launchManager.o
+OBJET=shell.lex.o y.tab.o ./modules/mypipe/mypipe.o ./modules/myjoker/myjoker.o ./modules/myjobs/myjobs.o ./modules/mycd/mycd.o launchManager.o ./modules/myredir/myredir.o
 CC=gcc
 CFLAGS=-Wall -g
 
@@ -29,8 +29,8 @@ y.tab.o: y.tab.c
 ./modules/myjoker/myjoker.o: ./modules/myjoker/myjoker.c
 	@$(CC) $(CFLAGS) -c  -o $@ ./modules/myjoker/myjoker.c
 
-./modules/myjoker/myjoker.o: ./modules/myjoker/myjoker.c
-	@$(CC) $(CFLAGS) -c  -o $@ ./modules/myjoker/myjoker.c
+./modules/myredir/myredir.o: ./modules/myredir/myredir.c
+	@$(CC) $(CFLAGS) -c  -o $@ ./modules/myredir/myredir.c
 
 ./modules/myjobs/myjobs.o: ./modules/myjobs/myjobs.c
 	@$(CC) $(CFLAGS) -c  -o $@ ./modules/myjobs/myjobs.c

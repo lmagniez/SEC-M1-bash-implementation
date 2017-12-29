@@ -1,1 +1,4 @@
--l ..
+myredir.c
+myredir.h
+test
+test.txt

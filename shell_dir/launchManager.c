@@ -4,12 +4,15 @@
 newstack(char*, stack);
 newstack(char*, cmdStack);
 newstack(char*, operatorStack);
+newstack(char*, fileStack);
+
 
 int pid_pere = 0;
 int pid_fils = 0;
 char *last_cmd;
 int stop_happened = 0;
 
+extern char init_cwd[1024];
 
 
 static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
@@ -108,6 +111,25 @@ void displayStack(void) {
 	}
 }
 
+char *ltrim(char *s)
+{
+    while(isspace(*s)) s++;
+    return s;
+}
+
+char *rtrim(char *s)
+{
+    char* back = s + strlen(s);
+    while(isspace(*--back));
+    *(back+1) = '\0';
+    return s;
+}
+
+char *trim(char *s)
+{
+    return rtrim(ltrim(s)); 
+}
+
 void endInitStack(void) {
 	while (!empty(stack)) {
 		char *val1, *val2;
@@ -115,10 +137,21 @@ void endInitStack(void) {
 		val1 = pop(stack);
 
 		if (isOperator(val1)) {
+			
+			if(isOpFluxWriteOutOperator(val1) || isOpFluxWriteOutDoubleOperator(val1) || isOpFluxWriteErrOperator(val1) ||
+			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)) {
+				if (!empty(stack)){
+					char *val_file = pop(stack);
+					val_file = trim(val_file);
+					push(fileStack, val_file);
+				}
+			}
+			
 			if (!empty(stack)) {
 				val2 = pop(stack);
 				if (isOperator(val2)) {
 					push(operatorStack, val2);
+					
 				} else {
 					push(cmdStack, val2);
 				}
@@ -168,19 +201,45 @@ void launchCommands(void) {
 		//son pid: exec the command
 		if (pid == 0) {
 			signal(SIGINT, SIG_IGN);
+			/*
 			pid_t pid2 = fork();
 			if(pid2 > 0){
 				
 				exit(0);
-				/*launch_sigaction_fils();
-				wait(NULL);
-				*/
+				//launch_sigaction_fils();
+				//wait(NULL);
+				
 			}
 			if(pid2 == 0){
-			
+			*/
 				if(operator != NULL){
 					if(isBackgroundOperator(operator)){
 						
+					}
+					
+					else if (isOpFluxWriteOutOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stdout(file);
+					}
+					else if (isOpFluxWriteOutDoubleOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stdout_double(file);
+					}
+					else if (isOpFluxWriteErrOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr(file);
+					}
+					else if (isOpFluxWriteErrDoubleOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr_double(file);
+					}
+					else if (isOpFluxWriteBothOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr_stdout(file);
+					}
+					else if (isOpFluxWriteBothDoubleOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr_stdout_double(file);
 					}
 				}
 				
@@ -202,8 +261,6 @@ void launchCommands(void) {
 							pid_fg = get_pid_from_id_job(id_job);
 							kill(pid_fg, SIGCONT);
 						}
-						int status;
-						//waitpid(pid_fg, &status, WUNTRACED);
 						exit(0);
 					}
 					
@@ -214,10 +271,16 @@ void launchCommands(void) {
 					exit(0);
 				}
 				else if(strcmp(MYLS,commandArray[0])==0){
-					execvpe(MYLS_PATH, commandArray, environ);
+					char path[1024];
+					strcpy(path, init_cwd);
+					strcat(path, MYLS_PATH);
+					execvpe(path, commandArray, environ);
 				}
 				else if(strcmp(MYPS,commandArray[0])==0){
-					execvpe(MYPS_PATH, commandArray, environ);
+					char path[1024];
+					strcpy(path, init_cwd);
+					strcat(path, MYPS_PATH);
+					execvpe(path, commandArray, environ);
 				}
 				else if(strcmp(MYCD,commandArray[0])==0){
 					//done in the father
@@ -228,7 +291,7 @@ void launchCommands(void) {
 				}
 				perror("Error exec");
 				exit(errno);
-			}
+			//}
 		
 		} 
 		//father pid: wait for the son
@@ -262,13 +325,13 @@ void launchCommands(void) {
 					//int status;
 					//waitpid(pid, &status, WNOHANG);
 					
-				}
+				} 
 				
 			}
 			else{
 				ajout_job(pid_fils, commandArray[0], 1);
 				int status;
-				waitpid(pid, &status, WUNTRACED);//for sleep too
+				waitpid(pid, &status, NULL);//for sleep too
 				
 				if (WIFEXITED(status)) {
 					int returnCode = WEXITSTATUS(status);
@@ -294,11 +357,8 @@ void launchCommands(void) {
 			perror("Error on fork");
 			exit(errno);
 		}
-		//sleep(1);
+		//used for not getting parsing error in flex
 		usleep(100*1000);
-		//printf("end pere\n");
-		//signal(SIGINT, handler_sigint);
-		
 	}
 }
 

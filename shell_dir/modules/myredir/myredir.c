@@ -26,11 +26,6 @@ void my_redir(char *filename, int del, int fd){
 	close(fd);
 	new_fd = dup(file);
 	
-	/*
-	if(close(file)!=0){
-		perror("close fd");
-		exit(0);
-	}*/
 	
 }
 
@@ -56,61 +51,50 @@ void my_redir_read(char *filename){
 }
 
 // > : delete the content of the file
-void my_redir_stdout(char **cmd, char *file){
+void my_redir_stdout(char *file){
 	my_redir(file, 1, 1);
-	execvp(cmd[0],cmd);
 }
 
 // >> : add the content at the end of file
-void my_redir_stdout_double(char **cmd, char *file){
+void my_redir_stdout_double(char *file){
 	my_redir(file, 0, 1);
-	execvp(cmd[0],cmd);
-
 }
 
 // 2> : delete the content of the file
-void my_redir_stderr(char **cmd, char *file){
+void my_redir_stderr(char *file){
 	my_redir(file, 1, 2);
-	execvp(cmd[0],cmd);
-
 }
 
 // 2>> : add the content at the end of file
-void my_redir_stderr_double(char **cmd, char *file){
+void my_redir_stderr_double(char *file){
 	my_redir(file, 0, 2);
-	execvp(cmd[0],cmd);
-
 }
 
 // >& : stderr and stdout to a file, delete the content of file
-void my_redir_stderr_stdout(char **cmd, char *file){
+void my_redir_stderr_stdout(char *file){
 	my_redir(file, 1, 1);
 	my_redir(file, 1, 2);
-	execvp(cmd[0],cmd);
-	
 }
 
 // >>& : stderr and stdout to a file, add at the end of file
-void my_redir_stderr_stdout_double(char **cmd, char *file){
+void my_redir_stderr_stdout_double(char *file){
 	my_redir(file, 0, 1);
 	my_redir(file, 0, 2);
-	execvp(cmd[0],cmd);
 }
 
 // < : read the file into the command
-void my_redir_stdin(char **cmd, char *file){
+void my_redir_stdin(char *file){
 	my_redir_read(file);
-	execvp(cmd[0],cmd);
 }
 
-
+/*
 int main(int argc, char **argv){
 	
 	
 	char ** cmd = malloc(sizeof(char*)*10);
 	cmd[0] = "ls";
-	cmd[1] = "azeazez";
-	cmd[2] = NULL;
+	//cmd[1] = "azeazez";
+	cmd[1] = NULL;
 	
 	char ** cmd2 = malloc(sizeof(char*)*10);
 	cmd2[0] = "cat";
@@ -129,12 +113,12 @@ int main(int argc, char **argv){
 		int status;
 		wait(&status);
 		//my_redir_stderr_stdout_double(cmd2, "test.txt");
-		my_redir_stdin(cmd2, "test.txt");
-		
+		//my_redir_stdin(cmd, "test.txt");
+		my_redir_stdout(cmd, "test.txt");
 	}
 	
 	
-}
+}*/
 
 
 

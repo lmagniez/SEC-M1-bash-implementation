@@ -21,10 +21,26 @@
 	return EXIT;
 }
 
-([a-zA-Z"'\\/0-9.\*\?\[\]]*[\ -]*)* {
+
+
+(([^><&|;\n])*[^><&|;\n2]) {
 	yylval=yytext;
 	return (CMD);
 }
+
+(([\ ])+) {
+	return (BLANK);
+}
+
+
+"2>>" {
+	return(FLUX_WRITE_ERR_DOUBLE);
+}
+
+"2>" {
+	return(FLUX_WRITE_ERR);
+}
+
 "||" {
 	return(OR);
 }
@@ -45,12 +61,26 @@
 	return(END);
 }
 
-">" {
-	return(FLUX_WRITE);
+">>" {
+	return(FLUX_WRITE_OUT_DOUBLE);
 }
+
+">>&" {
+	return(FLUX_WRITE_BOTH_DOUBLE);
+}
+
+">&" {
+	return(FLUX_WRITE_BOTH);
+}
+
+
 
 "<" {
 	return(FLUX_READ);
+}
+
+">" {
+	return(FLUX_WRITE_OUT);
 }
 
 %%

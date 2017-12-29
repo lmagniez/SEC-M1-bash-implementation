@@ -7,6 +7,8 @@
 #include "./modules/myjoker/myjoker.h"
 #include "./modules/myjobs/myjobs.h"
 #include "./modules/mycd/mycd.h"
+#include "./modules/myredir/myredir.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,8 +29,8 @@
 #define MYJOB "myjobs"
 #define MYFG "myfg"
 #define MYCD "cd"
-#define MYLS_PATH "./myls"
-#define MYPS_PATH "./myps"
+#define MYLS_PATH "/myls"
+#define MYPS_PATH "/myps"
 
 extern char **environ;
 
