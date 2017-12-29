@@ -27,8 +27,8 @@
 #define MYJOB "myjobs"
 #define MYFG "myfg"
 #define MYCD "cd"
-#define MYLS_PATH "./modules-externes/myls/myls"
-#define MYPS_PATH "./modules-externes/myps/myps"
+#define MYLS_PATH "./myls"
+#define MYPS_PATH "./myps"
 
 extern char **environ;
 
