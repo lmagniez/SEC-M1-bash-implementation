@@ -28,9 +28,6 @@
 	return (CMD);
 }
 
-(([\ ])+) {
-	return (BLANK);
-}
 
 
 "2>>" {

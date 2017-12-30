@@ -28,6 +28,7 @@
 #define MYPS "myps"
 #define MYJOB "myjobs"
 #define MYFG "myfg"
+#define MYSTATUS "status"
 #define MYCD "cd"
 #define MYLS_PATH "/myls"
 #define MYPS_PATH "/myps"

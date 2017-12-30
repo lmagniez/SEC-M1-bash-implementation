@@ -13,7 +13,8 @@ char *last_cmd;
 int stop_happened = 0;
 
 extern char init_cwd[1024];
-
+int last_pid = -1;
+int last_code = -1;
 
 static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
 {
@@ -138,6 +139,7 @@ void endInitStack(void) {
 
 		if (isOperator(val1)) {
 			
+			//add the file into the file stack
 			if(isOpFluxWriteOutOperator(val1) || isOpFluxWriteOutDoubleOperator(val1) || isOpFluxWriteErrOperator(val1) ||
 			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)) {
 				if (!empty(stack)){
@@ -148,7 +150,7 @@ void endInitStack(void) {
 			}
 			
 			if (!empty(stack)) {
-				val2 = pop(stack);
+				val2 = pop(stack);s
 				if (isOperator(val2)) {
 					push(operatorStack, val2);
 					
@@ -286,6 +288,17 @@ void launchCommands(void) {
 					//done in the father
 					exit(0);
 				}
+				else if(strcmp(MYSTATUS,commandArray[0])==0){
+					if(last_pid != -1){
+						if(last_code >= 0){
+							printf("%d terminé avec comme code de retour %d\n", last_pid, last_code);
+						}
+						else{
+							printf("%d terminé anormalement\n", last_pid);
+						}
+					}
+					exit(0);
+				}
 				else{
 					execvpe(commandArray[0], commandArray, environ);
 				}
@@ -298,9 +311,6 @@ void launchCommands(void) {
 		else if (pid > 0) {
 			signal(SIGTSTP, SIG_IGN);
 			pid_fils = pid;
-			
-			
-			int status;
 			
 			//launch all the signal
 			launch_sigaction_pere();
@@ -331,21 +341,25 @@ void launchCommands(void) {
 			else{
 				ajout_job(pid_fils, commandArray[0], 1);
 				int status;
-				waitpid(pid, &status, NULL);//for sleep too
+				waitpid(pid, &status, 0);//for sleep too
 				
 				if (WIFEXITED(status)) {
-					int returnCode = WEXITSTATUS(status);
-					//printf("exit with return code %d\n", returnCode);
-
+					last_code = WEXITSTATUS(status);
+					last_pid = pid_fils;
+					
 					if (operator != NULL) {
 						
-						if (isAndOperator(operator) && returnCode > 0) {
+						if (isAndOperator(operator) && last_code > 0) {
 							unStack();
-						} else if (isOrOperator(operator) && returnCode == 0) {
+						} else if (isOrOperator(operator) && last_code == 0) {
 							unStack();
 						} 
 						
 					}
+				}
+				else{
+					last_code = -1;
+					last_pid = pid_fils;
 				}
 				destroyCommandsArray(commandArray);
 				
@@ -420,7 +434,6 @@ void destroyCommandsArray(char **commandArray) {
 }
 
 void freeList(){
-	printf("FREE LIST \n");
 	while(!empty(operatorStack)) {
 		char * operator = pop(operatorStack);
 		free(operator);

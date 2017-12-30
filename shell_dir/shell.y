@@ -16,6 +16,7 @@ int yylex();
 int yyerror(char*);
 char init_cwd[1024];
 
+
 /*extern YY_FLUSH_BUFFER;
 extern YYACCEPT;
 extern YYABORT;
