@@ -1,1 +1,9 @@
-ls: impossible d'accéder à 'qsdqsdqd': Aucun fichier ou dossier de ce type
+makefile
+myls
+myps
+philo
+philo_dir
+README.md
+shell
+shell_dir
+test.txt

@@ -150,7 +150,7 @@ void endInitStack(void) {
 			}
 			
 			if (!empty(stack)) {
-				val2 = pop(stack);s
+				val2 = pop(stack);
 				if (isOperator(val2)) {
 					push(operatorStack, val2);
 					
