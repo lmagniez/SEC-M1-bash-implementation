@@ -16,8 +16,9 @@ Projet de sec : réalisation d'un shell par groupe de 3
 
 ### Florent 
 - Implémentation squelette du parseur lex/yacc (grammaires, règles...)
+- Base du shell (replacement des commandes et opérateurs dans le bon ordre depuis le lex, exécution des commandes, formatage commande + paramètres)
 - opérateurs && || ;
-- Gestion de la mémoire locale
+- Gestion de la mémoire locale (set et unset), remplacement des variables $nom par leur valeur et affichage des variables dans la mémoire locale avec set sans aucun paramètre
 
 ### Loïck
 - myls
@@ -27,11 +28,11 @@ Projet de sec : réalisation d'un shell par groupe de 3
 - caractère joker
 - mystatus
 
-## Les petis plus
+## Les petits plus
 
 ###Myps
 - State avec precisions :  +;N;l;L;s;<
-- Enregsitrement d'une variable dans une autre variable local "set a=$c"
+- Enregistrement d'une variable dans une autre variable local "set a=$c" (il s'agit d'une recopie, si l'on modifie l'une, l'autre n'est pas modifiée)
 
 ## Problèmes rencontrés
 ### signaux
