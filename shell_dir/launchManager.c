@@ -141,7 +141,8 @@ void endInitStack(void) {
 			
 			//add the file into the file stack
 			if(isOpFluxWriteOutOperator(val1) || isOpFluxWriteOutDoubleOperator(val1) || isOpFluxWriteErrOperator(val1) ||
-			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)) {
+			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)
+			|| isOpFluxReadOperator(val1)) {
 				if (!empty(stack)){
 					char *val_file = pop(stack);
 					val_file = trim(val_file);
@@ -318,6 +319,15 @@ void launchCommands(void) {
 						char *file = pop(fileStack);
 						my_redir_stderr_stdout_double(file);
 					}
+					else if (isOpFluxWriteBothDoubleOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr_stdout_double(file);
+					}
+					else if (isOpFluxReadOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_read(file);
+					}
+					
 				}
 				
 				traitement_pipe_fils();
@@ -393,7 +403,9 @@ void launchCommands(void) {
 			
 			if(strcmp(MYCD,commandArray[0])==0){
 				if(commandArray[1] == NULL){
-					exit(1);
+					//exit(1);
+					int res = cd("");
+					if(res == 0) printf("switched to the ~ directory\n");
 				}
 				else{
 					int res = cd(commandArray[1]);

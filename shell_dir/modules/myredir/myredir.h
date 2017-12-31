@@ -24,7 +24,7 @@ void my_redir_stderr(char *file);
 void my_redir_stderr_double(char *file);
 void my_redir_stderr_stdout(char *file);
 void my_redir_stderr_stdout_double(char *file);
-
+void my_redir_read(char *filename);
 
 
 #endif

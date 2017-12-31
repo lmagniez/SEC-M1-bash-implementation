@@ -7,6 +7,7 @@ Projet de sec : réalisation d'un bash
 - c
  
 ## Répartition des tâches 
+
 ### Vincent
 - Myps
 - Problème des philosophes
@@ -16,7 +17,7 @@ Projet de sec : réalisation d'un bash
 ### Florent 
 - Implémentation squelette du parseur lex/yacc (grammaires, règles...)
 - opérateurs && || ;
-- Gestion de la mémoire
+- Gestion de la mémoire locale
 
 ### Loïck
 - myls
@@ -25,6 +26,11 @@ Projet de sec : réalisation d'un bash
 - signaux
 - caractère joker
 - mystatus
+
+## Les petis plus
+
+###Myps
+- State avec precisions :  +;N;l;L;s;<
 
 ## Problèmes rencontrés
 ### signaux

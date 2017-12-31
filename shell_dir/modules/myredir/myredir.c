@@ -31,6 +31,7 @@ void my_redir(char *filename, int del, int fd){
 
 void my_redir_read(char *filename){
 	
+
 	int old_fd, new_fd;
 	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 	
