@@ -390,8 +390,8 @@ void launchCommands(void) {
 			if(strcmp(MYCD,commandArray[0])==0){
 				if(commandArray[1] == NULL){
 					//exit(1);
-					int res = cd(init_cwd);
-					if(res == 0) printf("switched to the origin directory\n");
+					int res = cd("");
+					if(res == 0) printf("switched to the ~ directory\n");
 				}
 				else{
 					int res = cd(commandArray[1]);
