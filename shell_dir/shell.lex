@@ -17,7 +17,7 @@
 	return(MY_PS);
 }
 
-"set "([a-zA-Z0-9])+([=])+([a-zA-Z0-9]+) {
+"set "([a-zA-Z0-9])+([=])+([$a-zA-Z0-9]+) {
 	yylval=yytext;
 	return(SET);
 }

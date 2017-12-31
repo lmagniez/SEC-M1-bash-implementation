@@ -181,7 +181,6 @@ void launchCommands(void) {
 	while(!empty(cmdStack)) {
 		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
-
 		if (isExit(cmd)) {
 			exit(0);
 		}
@@ -203,6 +202,7 @@ void launchCommands(void) {
 					commandArray[1][i] >= 'a' && commandArray[1][i] <= 'z' 
 					|| commandArray[1][i] >= 'A' && commandArray[1][i] <= 'Z'
 					|| commandArray[1][i] >= '0' && commandArray[1][i] <= '9'
+					|| (!isId && commandArray[1][i] == '$')
 				) {
 					if (isId) {
 						id[cpt] = commandArray[1][i];
@@ -220,7 +220,11 @@ void launchCommands(void) {
 			}
 
 			valeur[cpt] = '\0';
-			addLocalMemory(id, valeur);
+			char * tmp[2];
+			tmp[0] = valeur;
+			tmp[1] = NULL;
+			replace2(tmp, 0);
+			addLocalMemory(id, tmp[0]);
 
 			continue;
 		} else if (operator != NULL && isOpSetDisplayOperator(operator)) {
@@ -462,8 +466,8 @@ void unStack() {
 	}
 }
 
-void replace(char **t) {
-	char **i = &t[1];
+void replace2(char **t, int ind) {
+	char **i = &t[ind];
 
 	while (*i != NULL) {
 		char *value = *i;
@@ -505,6 +509,7 @@ void replace(char **t) {
 		}
 
 		if (test) {
+			if (ind != 0)
 			free(*i);
 			*i = malloc(strlen(tmp) + 1);
 			strcpy(*i, tmp);
@@ -512,6 +517,10 @@ void replace(char **t) {
 		
 		i++;
 	}
+}
+
+void replace(char **t) {
+	return replace2(t, 1);
 }
 
 char **getCommandsArray(char* commandLine) {

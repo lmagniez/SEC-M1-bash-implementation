@@ -101,7 +101,7 @@ void handler_sigint(int arg){
 	scanf(" %s",buf);
 	res=buf[0];
 	free(buf);
-	
+
 	switch(res){
 		case 'y':
 			exit(1);
@@ -109,7 +109,7 @@ void handler_sigint(int arg){
 			
 		break;
 		case 'n':
-			printf("> ");
+			printf(">");
 			fflush(stdout);
 			signal(SIGINT, handler_sigint);
 			return;

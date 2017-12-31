@@ -44,6 +44,8 @@ void displayListCommand(void);
 char **getCommandsArray(char*);
 void destroyCommandsArray(char**);
 void unStack(void);
+void replace(char **t);
+void replace2(char **t, int ind);
 
 //handler
 void change_sigint(void);
