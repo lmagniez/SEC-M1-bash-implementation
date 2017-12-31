@@ -109,7 +109,7 @@ void handler_sigint(int arg){
 			
 		break;
 		case 'n':
-			printf("> ");
+			printf(BLUE("%s > "),init_cwd);
 			fflush(stdout);
 			signal(SIGINT, handler_sigint);
 			return;
