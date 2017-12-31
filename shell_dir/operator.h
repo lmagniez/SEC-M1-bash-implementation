@@ -24,7 +24,9 @@
 #define OP_SET "SET"
 #define OP_SET_DISPLAY "SET_DISPLAY"
 #define OP_UNSET "UNSET"
-
+#define OP_SET_ENV "SET_ENV"
+#define OP_SET_ENV_DISPLAY "SET_ENV_DISPLAY"
+#define OP_UNSET_ENV "UNSET_ENV"
 
 #define isAndOperator(op) strcmp(op, OP_AND) == 0
 #define isOrOperator(op) strcmp(op, OP_OR) == 0
@@ -44,10 +46,14 @@
 #define isOpSetOperator(op) strcmp(op, OP_SET) == 0
 #define isOpSetDisplayOperator(op) strcmp(op, OP_SET_DISPLAY) == 0
 #define isOpUnset(op) strcmp(op, OP_UNSET) == 0
+#define isOpSetEnvOperator(op) strcmp(op, OP_SET_ENV) == 0
+#define isOpSetEnvDisplayOperator(op) strcmp(op, OP_SET_ENV_DISPLAY) == 0
+#define isOpUnsetEnv(op) strcmp(op, OP_UNSET_ENV) == 0
 
 #define isOperator(op) isAndOperator(op) || isOrOperator(op) || isSeparatorOperator(op) || isPipeOperator(op) || isBackgroundOperator(op) \
 	|| isOpFluxWriteOutOperator(op) || isOpFluxWriteOutDoubleOperator(op) || isOpFluxWriteErrOperator(op) \
 	|| isOpFluxWriteErrDoubleOperator(op) || isOpFluxWriteBothOperator(op) || isOpFluxWriteBothDoubleOperator(op) \
-	|| isOpFluxReadOperator(op) || isOpSetOperator(op) || isOpSetDisplayOperator(op) || isOpUnset(op)
+	|| isOpFluxReadOperator(op) || isOpSetOperator(op) || isOpSetDisplayOperator(op) || isOpUnset(op) \
+	|| isOpSetEnvDisplayOperator(op) || isOpSetEnvOperator(op) || isOpUnsetEnv(op)
 
 #endif

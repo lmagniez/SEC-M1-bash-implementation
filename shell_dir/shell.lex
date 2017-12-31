@@ -17,6 +17,20 @@
 	return(MY_PS);
 }
 
+"setenv"[ ]* {
+	return (SET_ENV_DISPLAY);
+}
+
+"setenv "([a-zA-Z0-9])+([=])+([a-zA-Z0-9]+) {
+	yylval=yytext;
+	return(SET_ENV);
+}
+
+"unsetenv"[ ]+"$"([a-zA-Z0-9])+ {
+	yylval=yytext;
+	return(UNSET_ENV);
+}
+
 "set "([a-zA-Z0-9])+([=])+([a-zA-Z0-9]+) {
 	yylval=yytext;
 	return(SET);
