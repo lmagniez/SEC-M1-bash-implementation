@@ -181,9 +181,15 @@ void launchCommands(void) {
 	while(!empty(cmdStack)) {
 		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
+
+		if (isExit(cmd)) {
+			exit(0);
+		}
+
 		char** commandArray = getCommandsArray(cmd);
 		last_cmd = commandArray[0];
 		stop_happened = 0;
+		
 		
 		int i=1;
 
