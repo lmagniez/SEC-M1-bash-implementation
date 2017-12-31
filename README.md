@@ -1,6 +1,6 @@
 ## Présentation ##
 
-Projet de sec : réalisation d'un bash
+Projet de sec : réalisation d'un shell par groupe de 3
 
 ## Développement ##
 
@@ -31,13 +31,15 @@ Projet de sec : réalisation d'un bash
 
 ###Myps
 - State avec precisions :  +;N;l;L;s;<
+- Enregsitrement d'une variable dans une autre variable local "set a=$c"
 
 ## Problèmes rencontrés
 ### signaux
-- Lorsque qu'on demande de quitter et que l'on indique non, le prochain caractère de la commande suivante est "mangé" par le parseur, ce qui fausse la commande
+- Lorsque qu'on demande de quitter et que l'on indique non, le prochain caractère est "mangé" par le parseur, ce qui fausse la commande et la commande d'apres de ne se fait pas.
 - Sigchld a la mort d'un processus en arrière provoque le plantage du parseur flex.
 	- Problème pour le passage des processus en arrière plan/premier plan
 	- Problème pour la reprise des processus
-...
+- Mémoire partagée non gérée
+- 
 
 
