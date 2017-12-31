@@ -98,7 +98,7 @@ void handler_sigint(int arg){
 	signal(SIGINT, SIG_IGN);
 	signal(SIGCHLD, SIG_IGN);
 	
-	scanf(" %s",buf);
+	scanf("%s",buf);
 	res=buf[0];
 	free(buf);
 
@@ -109,6 +109,7 @@ void handler_sigint(int arg){
 			
 		break;
 		case 'n':
+			freeList();
 			printf(BLUE("%s > "),init_cwd);
 			fflush(stdout);
 			signal(SIGINT, handler_sigint);

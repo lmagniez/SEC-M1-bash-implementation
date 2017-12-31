@@ -166,7 +166,6 @@ void endInitStack(void) {
 		}
 	}
 	//getCommandsArray(pop(cmdStack));
-	//displayListCommand();
 	launchCommands();
 }
 
@@ -186,6 +185,10 @@ void launchCommands(void) {
 			exit(0);
 		}
 
+		if(strcmp(cmd,"")==0){
+			freeList();
+			continue;
+		}
 		char** commandArray = getCommandsArray(cmd);
 		last_cmd = commandArray[0];
 		stop_happened = 0;
