@@ -17,11 +17,25 @@
 	return(MY_PS);
 }
 
+"set "([a-zA-Z0-9])+([=])+([a-zA-Z0-9]+) {
+	yylval=yytext;
+	return(SET);
+}
+
+"set"[ ]* {
+	return (SET_DISPLAY);
+}
+
+"unset"[ ]+"$"([a-zA-Z0-9])+ {
+	yylval=yytext;
+	return(UNSET);
+}
+
 [ ]*"exit"[ ]* {
 	return EXIT;
 }
 
-([a-zA-Z"'\\/0-9.\*\?\[\]]*[\ -]*)* {
+([$]*[a-zA-Z"'\\/0-9.\*\?\[\]+$]*[\ -]*)* {
 	yylval=yytext;
 	return (CMD);
 }

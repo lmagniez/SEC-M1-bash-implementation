@@ -13,7 +13,9 @@
 #define OP_FLUX_WRITE "FLUX_WRITE"
 #define OP_MYLS "MYLS"
 #define OP_MYPS "MYPS"
-
+#define OP_SET "SET"
+#define OP_SET_DISPLAY "SET_DISPLAY"
+#define OP_UNSET "UNSET"
 
 #define isAndOperator(op) strcmp(op, OP_AND) == 0
 #define isOrOperator(op) strcmp(op, OP_OR) == 0
@@ -24,9 +26,11 @@
 #define isEndOperator(op) strcmp(op, OP_END) == 0
 #define isOpFluxReadOperator(op) strcmp(op, OP_FLUX_READ) == 0
 #define isOpFluxWriteOperator(op) strcmp(op, OP_FLUX_WRITE) == 0
+#define isOpSetOperator(op) strcmp(op, OP_SET) == 0
+#define isOpSetDisplayOperator(op) strcmp(op, OP_SET_DISPLAY) == 0
+#define isOpUnset(op) strcmp(op, OP_UNSET) == 0
 #define isOperator(op) isAndOperator(op) || isOrOperator(op) || isSeparatorOperator(op) || isPipeOperator(op) || isBackgroundOperator(op) \
-	|| isOpFluxWriteOperator(op) || isOpFluxReadOperator(op)
+	|| isOpFluxWriteOperator(op) || isOpFluxReadOperator(op) || isOpSetOperator(op) || isOpSetDisplayOperator(op) || isOpUnset(op)
 #define isOpFluxWriteOperator(op) strcmp(op, OP_FLUX_WRITE) == 0
-
 
 #endif

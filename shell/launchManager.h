@@ -1,8 +1,9 @@
 #ifndef LAUNCHMANAGER
 #define LAUNCHMANAGER
 #include "stack.h"
-#include "launchManager.h"
+//#include "launchManager.h"
 #include "operator.h"
+#include "localMemory.h"
 #include "./modules/mypipe/mypipe.h"
 #include "./modules/myjoker/myjoker.h"
 #include "./modules/myjobs/myjobs.h"

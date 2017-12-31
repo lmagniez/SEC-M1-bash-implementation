@@ -9,7 +9,8 @@ gcc -o ./modules/myjoker/myjoker.o -c ./modules/myjoker/myjoker.c
 gcc -o ./modules/myjobs/myjobs.o -c ./modules/myjobs/myjobs.c
 gcc -o ./modules/mycd/mycd.o -c ./modules/mycd/mycd.c
 gcc -o launchManager.o -c launchManager.c;
-gcc -o shell shell.lex.o y.tab.o ./modules/mypipe/mypipe.o ./modules/mycd/mycd.o ./modules/myjoker/myjoker.o ./modules/myjobs/myjobs.o launchManager.o -ll;
+gcc -o localMemory.o -c localMemory.c
+gcc -o shell shell.lex.o y.tab.o ./modules/mypipe/mypipe.o ./modules/mycd/mycd.o ./modules/myjoker/myjoker.o ./modules/myjobs/myjobs.o launchManager.o localMemory.o -ll;
 
 rm shell.lex.c;
 rm shell.lex.o;

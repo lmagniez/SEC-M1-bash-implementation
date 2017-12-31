@@ -24,7 +24,7 @@ extern int YYLESS(int n);
 
 %}
 
-%token CMD AND PIPE OR BACKGROUND SEPARATOR FLUX_WRITE FLUX_READ MY_JOBS EXIT MY_LS END
+%token CMD AND PIPE OR BACKGROUND SEPARATOR FLUX_WRITE FLUX_READ MY_JOBS EXIT MY_LS SET SET_DISPLAY UNSET END
 
 %left AND OR
 %left PIPE SEPARATOR BACKGROUND
@@ -45,6 +45,9 @@ Line:
 
 Command:
 	CMD {addToStack($1);}
+	|SET {addToStack($1); addToStack(OP_SET);}
+	|SET_DISPLAY {addToStack(OP_SET_DISPLAY);}
+	|UNSET {addToStack($1); addToStack(OP_UNSET);}
 	|MY_JOBS {printf("Je suis la commande my_jobs");}
 	|Command AND Command {addToStack(OP_AND);}
 	|Command OR Command {addToStack(OP_OR);}

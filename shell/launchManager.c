@@ -10,8 +10,6 @@ int pid_fils = 0;
 char *last_cmd;
 int stop_happened = 0;
 
-
-
 static void handler_sigchld_bg (int sig, siginfo_t *siginfo, void *context)
 {
 	
@@ -115,8 +113,15 @@ void endInitStack(void) {
 	launchCommands();
 }
 
-
 void launchCommands(void) {
+	char *op = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
+	if (op != NULL) {
+		if (isOpSetDisplayOperator(op)) {
+			printLocalMemory();
+		} else {
+			push(operatorStack, op);
+		}
+	}
 	while(!empty(cmdStack)) {
 		char *operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
 		char *cmd = pop(cmdStack);
@@ -125,6 +130,64 @@ void launchCommands(void) {
 		stop_happened = 0;
 		
 		int i=1;
+
+		if(operator != NULL && isOpSetOperator(operator)) {
+			char id[1024], valeur[1024];
+			int i = 0;
+			int cpt = 0;
+			int isId = 1;
+			while (commandArray[1][i] != '\0') {
+				if (
+					commandArray[1][i] >= 'a' && commandArray[1][i] <= 'z' 
+					|| commandArray[1][i] >= 'A' && commandArray[1][i] <= 'Z'
+					|| commandArray[1][i] >= '0' && commandArray[1][i] <= '9'
+				) {
+					if (isId) {
+						id[cpt] = commandArray[1][i];
+					} else {
+						valeur[cpt] = commandArray[1][i];
+					}
+				} else {
+					id[++cpt] = '\0';
+					cpt = -1;
+					isId = 0;
+				}
+
+				cpt++;
+				i++;
+			}
+
+			valeur[cpt] = '\0';
+			addLocalMemory(id, valeur);
+
+			continue;
+		} else if (operator != NULL && isOpSetDisplayOperator(operator)) {
+			printLocalMemory();
+			operator = ((!empty(operatorStack)) ? pop(operatorStack) : NULL);
+		} else if (operator != NULL && isOpUnset(operator)) {
+			char tmp[1025];
+			int i =0, cpt=0;
+
+			while (commandArray[1][i] != '\0') {
+				if (
+					commandArray[1][i] >= 'a' && commandArray[1][i] <= 'z' 
+					|| commandArray[1][i] >= 'A' && commandArray[1][i] <= 'Z'
+					|| commandArray[1][i] >= '0' && commandArray[1][i] <= '9'
+				) {
+					tmp[cpt] = commandArray[1][i];
+					cpt++;
+				} else if (commandArray[1][i] != '$'){
+					break;
+				}
+
+				i++;
+			}
+
+			tmp[cpt] = '\0';
+			removeLocalMemory(tmp);
+
+			continue;
+		}
 		
 		//detect the * and replace with the corresponding elements 
 		if(commandArray!=NULL){
@@ -283,6 +346,54 @@ void unStack() {
 	}
 }
 
+void replace(char **t) {
+	char **i = &t[1];
+
+	while (*i != NULL) {
+		char *value = *i;
+		char *occ;
+		char tmp[1024];
+		memset(tmp, '\0', 1024);
+		int test = 0;
+		int debug = 0;
+		while ((occ = strchr(value, '$')) != NULL && debug < 2) {
+			test = 1;
+			strncpy(tmp, value, occ - value);
+			if (occ - value > 0) {
+				tmp[occ - value] = '\0';
+			}
+
+			char id[1024];
+			memset(id, '\0', 1024);
+			int cpt = 0;
+			char *c;
+
+			for(c = occ + 1; *c != '\0' && (*c >= 'A' && *c <= 'Z' || *c >= 'a' && *c <= 'z' || *c >= '0' && *c <= '9'); c++) {
+				id[cpt] = *c;
+				cpt++;
+			}
+
+			id[cpt] = '\0';
+
+			char *val = getFromLocalMemory(id);
+
+			strcat(tmp, val);
+			strcat(tmp, c);
+
+			value = tmp;
+			debug++;
+		}
+
+		if (test) {
+			free(*i);
+			*i = malloc(strlen(tmp) + 1);
+			strcpy(*i, tmp);
+		}
+		
+		i++;
+	}
+}
+
 char **getCommandsArray(char* commandLine) {
 	char *test = strtok(commandLine, " ");
 	char *firstValue = malloc(strlen(test) + 1);
@@ -310,6 +421,10 @@ char **getCommandsArray(char* commandLine) {
 	}
 
 	free(commandLine);
+
+	if (strcmp(array[0], "echo") == 0) {
+		replace(array);
+	}
 
 	return array;
 }
