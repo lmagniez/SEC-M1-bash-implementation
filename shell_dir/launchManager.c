@@ -141,7 +141,8 @@ void endInitStack(void) {
 			
 			//add the file into the file stack
 			if(isOpFluxWriteOutOperator(val1) || isOpFluxWriteOutDoubleOperator(val1) || isOpFluxWriteErrOperator(val1) ||
-			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)) {
+			isOpFluxWriteErrDoubleOperator(val1) || isOpFluxWriteBothOperator(val1) || isOpFluxWriteBothDoubleOperator(val1)
+			|| isOpFluxReadOperator(val1)) {
 				if (!empty(stack)){
 					char *val_file = pop(stack);
 					val_file = trim(val_file);
@@ -314,6 +315,15 @@ void launchCommands(void) {
 						char *file = pop(fileStack);
 						my_redir_stderr_stdout_double(file);
 					}
+					else if (isOpFluxWriteBothDoubleOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_stderr_stdout_double(file);
+					}
+					else if (isOpFluxReadOperator(operator)){
+						char *file = pop(fileStack);
+						my_redir_read(file);
+					}
+					
 				}
 				
 				traitement_pipe_fils();
